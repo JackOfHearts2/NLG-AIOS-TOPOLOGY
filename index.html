@@ -27,7 +27,7 @@
   .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);margin:0 0 6px;}
   h1{font-family:var(--serif);font-weight:400;font-size:24px;color:var(--text);margin:0;letter-spacing:.01em;}
   .sub{font-family:var(--mono);font-size:12px;color:var(--text-3);margin:6px 0 0;letter-spacing:.02em;}
-  #stage{flex:1;position:relative;transition:filter .4s ease;}
+  #stage{flex:1;position:relative;transition:filter .4s ease;min-height:0;}
   #stage.dimmed{filter:blur(3px) brightness(.55);}
   svg#map{position:absolute;inset:0;width:100%;height:100%;}
   .node{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.2,1);}
@@ -88,6 +88,16 @@
   .candidates li:last-child{border-bottom:none;}
   .tandem{font-size:14px;color:var(--text-2);line-height:1.65;background:var(--surface-2);border-left:2px solid var(--cyan);
     padding:14px 16px;margin-top:4px;}
+
+  #nowStrip{flex:none;padding:16px 30px 22px;border-top:1px solid var(--border);position:relative;z-index:1;background:var(--bg);}
+  #nowStrip .now-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin:0 0 12px;}
+  .now-track{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;}
+  .now-card{flex:none;width:230px;background:var(--surface);border:1px solid var(--border);border-left:2px solid var(--amber);
+    border-radius:6px;padding:12px 14px;cursor:pointer;transition:border-color .15s ease;}
+  .now-card:hover{border-color:var(--gold-dim);}
+  .now-card .nc-title{font-size:11px;color:var(--gold);font-family:var(--mono);letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase;}
+  .now-card .nc-text{font-size:13px;color:var(--text);line-height:1.45;}
+  .now-empty{font-size:13px;color:var(--text-3);}
   .note{font-size:13px;color:var(--text-2);line-height:1.6;background:var(--surface-2);border-left:2px solid var(--amber);
     padding:14px 16px;margin-top:14px;}
   .question-box{border:1px dashed var(--cyan);padding:14px 16px;margin-top:14px;}
@@ -118,7 +128,7 @@
     <button class="back info-btn" onclick="openInfo()">about this map</button>
   </header>
   <div id="stage">
-    <svg id="map" viewBox="0 0 680 660" role="img" aria-label="Hub and spoke topology of NLG AI implementation"></svg>
+    <svg id="map" role="img" aria-label="Hub and spoke topology of NLG AI implementation"></svg>
     <div class="legend">
       <span><i class="dot" style="background:var(--green)"></i>active</span>
       <span><i class="dot" style="background:var(--amber)"></i>in research</span>
@@ -126,6 +136,10 @@
       <span><i class="dot" style="background:var(--gray)"></i>not started</span>
     </div>
     <div class="hint">tap / click a node</div>
+  </div>
+  <div id="nowStrip">
+    <p class="now-label">in progress right now</p>
+    <div id="nowTrack" class="now-track"></div>
   </div>
   <div id="overlay" onclick="closeDetail()"></div>
   <div id="detail">
@@ -145,11 +159,22 @@ const DIM   = { active:"#1E3A2B", research:"#4A3B1E", proposed:"#1E3A3A", "not-s
 const LABEL = { active:"active", research:"in research", proposed:"proposed", "not-started":"not started" };
 
 const svg = document.getElementById("map");
-const cx=340, cy=340, hubR=65, nodeR=200, boxW=132, boxH=52;
+const boxW=132, boxH=52;
+let cx=340, cy=330, hubR=65, nodeR=200;
 const NS = "http://www.w3.org/2000/svg";
 function el(tag, attrs){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
 
+function sizeStage(){
+  const stage = document.getElementById("stage");
+  const w = stage.clientWidth, h = stage.clientHeight;
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  cx = w/2; cy = h/2;
+  nodeR = Math.max(150, Math.min(w, h) * 0.36 - boxW*0.2);
+  hubR = Math.max(48, nodeR * 0.32);
+}
+
 function render(){
+  sizeStage();
   svg.innerHTML = "";
   const defs = el("defs");
   defs.innerHTML = '<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#232A30" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>';
@@ -270,7 +295,34 @@ function closeDetail(){
   document.getElementById("stage").classList.remove("dimmed");
 }
 
+function renderNowStrip(){
+  const track = document.getElementById("nowTrack");
+  const items = [];
+  HUB.steps.filter(s=>s.state==="now").forEach(s=>items.push({label:"Claude", text:s.text, action:()=>openHub()}));
+  ASPECTS.forEach(a=>{
+    a.steps.filter(s=>s.state==="now").forEach(s=>items.push({label:a.name, text:s.text, action:()=>openDetail(a.id)}));
+  });
+  if(items.length === 0){
+    track.innerHTML = `<p class="now-empty">Nothing actively in progress right now.</p>`;
+    return;
+  }
+  track.innerHTML = "";
+  items.forEach(it=>{
+    const card = document.createElement("div");
+    card.className = "now-card";
+    card.innerHTML = `<div class="nc-title">${it.label}</div><div class="nc-text">${it.text}</div>`;
+    card.addEventListener("click", it.action);
+    track.appendChild(card);
+  });
+}
+
 render();
+renderNowStrip();
+let resizeTimer;
+window.addEventListener("resize", ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(render, 150);
+});
 </script>
 </body>
 </html>
