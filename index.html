@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>NLG-AIOS Topology, Project Dawn</title>
+<style>
+  :root{
+    --bg:#0A0D10; --surface:#12161A; --surface-2:#181D22;
+    --gold:#D4AF37; --gold-dim:#7A6220; --cyan:#4FD1C5;
+    --text:#E8ECEE; --text-2:#9AA4AA; --text-3:#5C666B;
+    --green:#5FD98A; --green-dim:#1E3A2B;
+    --amber:#F2B84B; --amber-dim:#4A3B1E;
+    --gray:#6B7378; --gray-dim:#2A2F33;
+    --border:#232A30;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);overflow:hidden;font-family:var(--sans);}
+  #app{position:relative;width:100vw;height:100vh;display:flex;flex-direction:column;}
+  .bg-grid{position:absolute;inset:0;pointer-events:none;
+    background-image:linear-gradient(var(--border) 1px, transparent 1px),linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size:38px 38px;opacity:.18;}
+  header{padding:22px 30px 6px;flex:none;position:relative;z-index:1;}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);margin:0 0 6px;}
+  h1{font-family:var(--serif);font-weight:400;font-size:24px;color:var(--text);margin:0;letter-spacing:.01em;}
+  .sub{font-family:var(--mono);font-size:12px;color:var(--text-3);margin:6px 0 0;letter-spacing:.02em;}
+  #stage{flex:1;position:relative;transition:filter .4s ease;}
+  #stage.dimmed{filter:blur(3px) brightness(.55);}
+  svg#map{position:absolute;inset:0;width:100%;height:100%;}
+  .node{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.2,1);}
+  .node:hover, .node:focus{transform:scale(1.08);outline:none;}
+  .node rect{transition:filter .2s ease, stroke-width .2s ease;}
+  .node:hover rect, .node:focus rect{filter:brightness(1.35) drop-shadow(0 0 10px currentColor);stroke-width:1.6;}
+  .hub-group{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.2,1);}
+  .hub-group:hover, .hub-group:focus{transform:scale(1.05);outline:none;}
+  .hub-glow{filter:drop-shadow(0 0 22px rgba(212,175,55,.4));}
+  .spoke-line{stroke:var(--border);stroke-width:1;}
+  .legend{position:absolute;left:30px;bottom:20px;display:flex;gap:16px;font-family:var(--mono);font-size:11px;color:var(--text-2);z-index:1;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .hint{position:absolute;right:30px;bottom:20px;font-family:var(--mono);font-size:11px;color:var(--text-3);z-index:1;}
+
+  #overlay{position:absolute;inset:0;background:rgba(5,6,7,.55);opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:2;}
+  #overlay.open{opacity:1;pointer-events:auto;}
+
+  #detail{position:absolute;top:0;right:0;bottom:0;width:92%;max-width:760px;background:var(--surface);
+    border-left:1px solid var(--gold-dim);transform:translateX(100%);transition:transform .42s cubic-bezier(.16,.8,.2,1);
+    overflow-y:auto;z-index:3;padding:30px 34px 60px;}
+  #detail.open{transform:translateX(0);}
+  #detail .corner{position:absolute;width:22px;height:22px;pointer-events:none;}
+  #detail .corner.tl{top:10px;left:10px;border-top:1.5px solid var(--gold);border-left:1.5px solid var(--gold);}
+  #detail .corner.bl{bottom:10px;left:10px;border-bottom:1.5px solid var(--gold);border-left:1.5px solid var(--gold);}
+
+  .back{display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid var(--border);
+    color:var(--text-2);font-family:var(--mono);font-size:12px;padding:9px 16px;cursor:pointer;margin-bottom:22px;
+    letter-spacing:.04em;}
+  .back:hover{border-color:var(--gold-dim);color:var(--text);}
+  .d-badge{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    padding:4px 11px;margin-bottom:12px;border:1px solid currentColor;}
+  .d-title{font-family:var(--serif);font-size:30px;color:var(--text);margin:0 0 18px;}
+  .d-row{display:flex;gap:10px;font-family:var(--mono);font-size:12px;color:var(--text-3);margin-bottom:6px;letter-spacing:.02em;}
+  .d-row b{color:var(--cyan);font-weight:400;min-width:110px;display:inline-block;}
+  .d-section-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
+    margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .purpose{font-size:15px;line-height:1.7;color:var(--text);margin:0;}
+  .conn-list{list-style:none;margin:0;padding:0;}
+  .conn-list li{position:relative;padding:8px 0 8px 20px;font-size:14px;color:var(--text);border-bottom:1px solid var(--border);line-height:1.5;}
+  .conn-list li:last-child{border-bottom:none;}
+  .conn-list li::before{content:"";position:absolute;left:0;top:16px;width:7px;height:7px;background:var(--cyan);border-radius:1px;transform:rotate(45deg);}
+  .steps{list-style:none;margin:0;padding:0;counter-reset:step;}
+  .steps li{position:relative;padding:12px 0 12px 46px;font-size:15px;color:var(--text);border-bottom:1px solid var(--border);line-height:1.55;}
+  .steps li:last-child{border-bottom:none;}
+  .steps li::before{counter-increment:step;content:counter(step,decimal-leading-zero);position:absolute;left:0;top:12px;
+    font-family:var(--mono);font-size:13px;color:var(--gold);letter-spacing:.05em;}
+  .note{font-size:13px;color:var(--text-2);line-height:1.6;background:var(--surface-2);border-left:2px solid var(--amber);
+    padding:14px 16px;margin-top:14px;}
+  .question-box{border:1px dashed var(--cyan);padding:14px 16px;margin-top:14px;}
+  .question-box .q-label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px;}
+  .question-box .q-text{font-size:14px;color:var(--text);line-height:1.5;}
+  .info-btn{position:absolute;top:24px;right:30px;}
+  .about-btn{position:absolute;top:24px;right:30px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+    color:var(--text-2);background:none;border:1px solid var(--border);padding:8px 14px;cursor:pointer;z-index:1;}
+  .about-btn:hover{border-color:var(--gold-dim);color:var(--text);}
+  .about-body{font-size:15px;line-height:1.75;color:var(--text);}
+  .about-body p{margin:0 0 16px;}
+  .qbox{margin-top:10px;}
+  .qbox label{display:block;font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:.04em;margin-bottom:8px;}
+  .qbox textarea{width:100%;min-height:64px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:10px 12px;resize:vertical;}
+  .qbox textarea:focus{outline:none;border-color:var(--gold-dim);}
+  .qbox .hint2{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bg-grid"></div>
+  <header>
+    <p class="eyebrow">Project Dawn // NLG-AIOS</p>
+    <h1>Topology</h1>
+    <p class="sub">select a node to view purpose · connections · setup</p>
+    <button class="back info-btn" onclick="openInfo()">about this map</button>
+  </header>
+  <div id="stage">
+    <svg id="map" viewBox="0 0 680 660" role="img" aria-label="Hub and spoke topology of NLG AI implementation"></svg>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--green)"></i>active</span>
+      <span><i class="dot" style="background:var(--amber)"></i>in research</span>
+      <span><i class="dot" style="background:var(--gray)"></i>not started</span>
+    </div>
+    <div class="hint">tap / click a node</div>
+  </div>
+  <div id="overlay" onclick="closeDetail()"></div>
+  <div id="detail">
+    <div class="corner tl"></div><div class="corner bl"></div>
+    <button class="back" onclick="closeDetail()">&#8592; back to topology</button>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+const HUB = window.NLG_DATA.hub;
+const ASPECTS = window.NLG_DATA.aspects;
+
+const COLOR = { active:"#5FD98A", research:"#F2B84B", "not-started":"#6B7378" };
+const DIM   = { active:"#1E3A2B", research:"#4A3B1E", "not-started":"#2A2F33" };
+const LABEL = { active:"active", research:"in research", "not-started":"not started" };
+
+const svg = document.getElementById("map");
+const cx=340, cy=340, hubR=65, nodeR=200, boxW=132, boxH=52;
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
+
+function render(){
+  svg.innerHTML = "";
+  const defs = el("defs");
+  defs.innerHTML = '<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#232A30" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>';
+  svg.appendChild(defs);
+
+  ASPECTS.forEach(a=>{
+    const rad = a.angle * Math.PI/180;
+    a._cx = cx + nodeR*Math.cos(rad); a._cy = cy + nodeR*Math.sin(rad);
+    const hx = cx + hubR*Math.cos(rad), hy = cy + hubR*Math.sin(rad);
+    svg.appendChild(el("line",{x1:hx,y1:hy,x2:a._cx,y2:a._cy,class:"spoke-line","marker-end":"url(#arrow)"}));
+  });
+
+  const hub = el("g",{class:"hub-group hub-glow", tabindex:"0", role:"button", "aria-label":"Claude central hub"});
+  hub.addEventListener("click",()=>openHub());
+  hub.addEventListener("keypress",(e)=>{ if(e.key==="Enter") openHub(); });
+  hub.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${hubR}" fill="#181D22" stroke="#D4AF37" stroke-width="1.5"/>
+    <text x="${cx}" y="${cy-8}" text-anchor="middle" dominant-baseline="central" font-size="16" fill="#E8ECEE" font-family="Georgia,serif">Claude</text>
+    <text x="${cx}" y="${cy+12}" text-anchor="middle" dominant-baseline="central" font-size="10" fill="#4FD1C5" font-family="monospace">central hub</text>`;
+  svg.appendChild(hub);
+
+  ASPECTS.forEach(a=>{
+    const g = el("g",{class:"node", style:`color:${COLOR[a.status]}`, tabindex:"0", role:"button", "aria-label":a.name});
+    g.addEventListener("click",()=>openDetail(a.id));
+    g.addEventListener("keypress",(e)=>{ if(e.key==="Enter") openDetail(a.id); });
+    const x = a._cx-boxW/2, y = a._cy-boxH/2;
+    g.innerHTML = `<rect x="${x}" y="${y}" width="${boxW}" height="${boxH}" rx="7" fill="${DIM[a.status]}" stroke="${COLOR[a.status]}" stroke-width="1"/>
+      <text x="${a._cx}" y="${a._cy-10}" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#E8ECEE" font-family="-apple-system,sans-serif">${a.name}</text>
+      <text x="${a._cx}" y="${a._cy+11}" text-anchor="middle" dominant-baseline="central" font-size="10" fill="${COLOR[a.status]}" font-family="monospace" letter-spacing="0.03em">${LABEL[a.status]}</text>`;
+    svg.appendChild(g);
+  });
+}
+
+function connList(arr){ return `<ul class="conn-list">${arr.map(c=>`<li>${c}</li>`).join("")}</ul>`; }
+function stepList(arr){ return `<ol class="steps">${arr.map(s=>`<li>${s}</li>`).join("")}</ol>`; }
+function questionBox(q){ return q ? `<div class="question-box"><span class="q-label">open question</span><span class="q-text">${q}</span></div>` : ""; }
+
+function openInfo(){
+  const body = document.getElementById("detailBody");
+  body.innerHTML = `
+    <span class="d-badge" style="color:#4FD1C5;border-color:#4FD1C5">reference</span>
+    <h2 class="d-title">About this map</h2>
+    <p class="purpose">This shows how the AI side of the business connects together. Claude sits at the center as the coordinating point. Each spoke around it represents one function of the business, marketing, finance, brokerage, property management, and so on.</p>
+    <p class="d-section-label">Reading the colors</p>
+    <ul class="conn-list">
+      <li>Green: active and running today</li>
+      <li>Amber: tools identified, connection still being worked out</li>
+      <li>Gray: not started yet</li>
+    </ul>
+    <p class="d-section-label">Reading a node</p>
+    <ul class="conn-list">
+      <li>Purpose: what this piece is meant to do</li>
+      <li>Connections needed: what has to be linked or authorized for it to work</li>
+      <li>Setup steps: the literal sequence to get there</li>
+      <li>Open question: a spot where the actual answer is still needed</li>
+    </ul>
+    <p class="d-section-label">Feedback</p>
+    <p class="purpose">If something here does not match how a process actually works day to day, or a tool is missing, that is exactly the kind of correction this map needs.</p>
+  `;
+  document.getElementById("detail").classList.add("open");
+  document.getElementById("overlay").classList.add("open");
+  document.getElementById("stage").classList.add("dimmed");
+}
+
+function openHub(){
+  const body = document.getElementById("detailBody");
+  body.innerHTML = `
+    <span class="d-badge" style="color:${COLOR.active};border-color:${COLOR.active}">${LABEL.active}</span>
+    <h2 class="d-title">${HUB.name}</h2>
+    <div class="d-row"><b>tool</b>${HUB.tool}</div>
+    <p class="d-section-label">Purpose</p>
+    <p class="purpose">${HUB.purpose}</p>
+    <p class="d-section-label">Connections needed</p>
+    ${connList(HUB.connections)}
+    <p class="d-section-label">Setup steps</p>
+    ${stepList(HUB.steps)}
+    ${questionBox(HUB.question)}
+  `;
+  document.getElementById("detail").classList.add("open");
+  document.getElementById("overlay").classList.add("open");
+  document.getElementById("stage").classList.add("dimmed");
+}
+
+function openDetail(id){
+  const a = ASPECTS.find(x=>x.id===id);
+  const body = document.getElementById("detailBody");
+  body.innerHTML = `
+    <span class="d-badge" style="color:${COLOR[a.status]};border-color:${COLOR[a.status]}">${LABEL[a.status]}</span>
+    <h2 class="d-title">${a.name}</h2>
+    <div class="d-row"><b>tool</b>${a.tool}</div>
+    <p class="d-section-label">Purpose</p>
+    <p class="purpose">${a.purpose}</p>
+    <p class="d-section-label">Connections needed</p>
+    ${connList(a.connections)}
+    <p class="d-section-label">Setup steps</p>
+    ${stepList(a.steps)}
+    ${a.note ? `<p class="d-section-label">Note</p><div class="note">${a.note}</div>` : ""}
+    ${questionBox(a.question)}
+  `;
+  document.getElementById("detail").classList.add("open");
+  document.getElementById("overlay").classList.add("open");
+  document.getElementById("stage").classList.add("dimmed");
+}
+function closeDetail(){
+  document.getElementById("detail").classList.remove("open");
+  document.getElementById("overlay").classList.remove("open");
+  document.getElementById("stage").classList.remove("dimmed");
+}
+
+render();
+</script>
+</body>
+</html>
