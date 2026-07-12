@@ -27,9 +27,10 @@
   .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);margin:0 0 6px;}
   h1{font-family:var(--serif);font-weight:400;font-size:24px;color:var(--text);margin:0;letter-spacing:.01em;}
   .sub{font-family:var(--mono);font-size:12px;color:var(--text-3);margin:6px 0 0;letter-spacing:.02em;}
-  #stage{flex:1;position:relative;transition:filter .4s ease;min-height:0;}
+  #stage{flex:1;position:relative;transition:filter .4s ease;min-height:0;overflow:hidden;cursor:grab;touch-action:none;}
+  #stage.panning{cursor:grabbing;}
   #stage.dimmed{filter:blur(3px) brightness(.55);}
-  svg#map{position:absolute;inset:0;width:100%;height:100%;}
+  svg#map{position:absolute;top:0;left:0;width:680px;height:660px;transform-origin:0 0;}
   .node{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.2,1);}
   .node:hover, .node:focus{transform:scale(1.08);outline:none;}
   .node rect{transition:filter .2s ease, stroke-width .2s ease;}
@@ -38,10 +39,16 @@
   .hub-group:hover, .hub-group:focus{transform:scale(1.05);outline:none;}
   .hub-glow{filter:drop-shadow(0 0 22px rgba(212,175,55,.4));}
   .spoke-line{stroke:var(--border);stroke-width:1;}
-  .legend{position:absolute;left:30px;bottom:20px;display:flex;gap:16px;font-family:var(--mono);font-size:11px;color:var(--text-2);z-index:1;}
+  .map-footer{position:absolute;left:0;right:0;bottom:14px;padding:0 24px;display:flex;flex-wrap:wrap;
+    justify-content:space-between;align-items:center;gap:6px 16px;z-index:1;pointer-events:none;}
+  .legend{display:flex;flex-wrap:wrap;gap:12px 16px;font-family:var(--mono);font-size:11px;color:var(--text-2);}
   .legend span{display:inline-flex;align-items:center;gap:6px;}
   .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
-  .hint{position:absolute;right:30px;bottom:20px;font-family:var(--mono);font-size:11px;color:var(--text-3);z-index:1;}
+  .hint{font-family:var(--mono);font-size:11px;color:var(--text-3);white-space:nowrap;}
+  .reset-view{position:absolute;right:20px;top:16px;z-index:1;background:var(--surface);border:1px solid var(--border);
+    color:var(--text-2);font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:20px;cursor:pointer;pointer-events:auto;}
+  .reset-view:hover{border-color:var(--gold-dim);color:var(--text);}
+
 
   #overlay{position:absolute;inset:0;background:rgba(5,6,7,.55);opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:2;}
   #overlay.open{opacity:1;pointer-events:auto;}
@@ -129,13 +136,16 @@
   </header>
   <div id="stage">
     <svg id="map" role="img" aria-label="Hub and spoke topology of NLG AI implementation"></svg>
-    <div class="legend">
-      <span><i class="dot" style="background:var(--green)"></i>active</span>
-      <span><i class="dot" style="background:var(--amber)"></i>in research</span>
-      <span><i class="dot" style="background:var(--cyan)"></i>proposed</span>
-      <span><i class="dot" style="background:var(--gray)"></i>not started</span>
+    <button class="reset-view" onclick="fitToContainer(true)">reset view</button>
+    <div class="map-footer">
+      <div class="legend">
+        <span><i class="dot" style="background:var(--green)"></i>active</span>
+        <span><i class="dot" style="background:var(--amber)"></i>in research</span>
+        <span><i class="dot" style="background:var(--cyan)"></i>proposed</span>
+        <span><i class="dot" style="background:var(--gray)"></i>not started</span>
+      </div>
+      <div class="hint">drag to pan &middot; pinch or scroll to zoom &middot; tap a node</div>
     </div>
-    <div class="hint">tap / click a node</div>
   </div>
   <div id="nowStrip">
     <p class="now-label">in progress right now</p>
@@ -159,22 +169,88 @@ const DIM   = { active:"#1E3A2B", research:"#4A3B1E", proposed:"#1E3A3A", "not-s
 const LABEL = { active:"active", research:"in research", proposed:"proposed", "not-started":"not started" };
 
 const svg = document.getElementById("map");
-const boxW=132, boxH=52;
-let cx=340, cy=330, hubR=65, nodeR=200;
+const cx=340, cy=330, hubR=65, nodeR=200, boxW=132, boxH=52;
 const NS = "http://www.w3.org/2000/svg";
 function el(tag, attrs){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
 
-function sizeStage(){
+// ---- Pan / zoom controller: fixed 680x660 canvas, scaled and panned via CSS transform ----
+const view = { x:0, y:0, scale:1, base:1 };
+function applyView(){ svg.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`; }
+function fitToContainer(){
   const stage = document.getElementById("stage");
   const w = stage.clientWidth, h = stage.clientHeight;
-  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-  cx = w/2; cy = h/2;
-  nodeR = Math.max(150, Math.min(w, h) * 0.36 - boxW*0.2);
-  hubR = Math.max(48, nodeR * 0.32);
+  const s = Math.min(w/680, h/660) * 0.94;
+  view.base = s; view.scale = s;
+  view.x = (w - 680*s)/2; view.y = (h - 660*s)/2;
+  applyView();
 }
+(function setupPanZoom(){
+  const stage = document.getElementById("stage");
+  let dragging=false, moved=false, startX=0, startY=0, startVX=0, startVY=0;
+  const pointers = new Map();
+  let pinchStartDist=0, pinchStartScale=1;
+
+  stage.addEventListener("pointerdown", e=>{
+    stage.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size === 1){
+      dragging = true; moved = false;
+      startX = e.clientX; startY = e.clientY;
+      startVX = view.x; startVY = view.y;
+      stage.classList.add("panning");
+    } else if(pointers.size === 2){
+      dragging = false;
+      const pts = [...pointers.values()];
+      pinchStartDist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      pinchStartScale = view.scale;
+    }
+  });
+  stage.addEventListener("pointermove", e=>{
+    if(!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pointers.size === 2){
+      const pts = [...pointers.values()];
+      const dist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+      const factor = dist / (pinchStartDist || dist);
+      const newScale = Math.min(Math.max(pinchStartScale*factor, view.base*0.6), view.base*3.5);
+      const midX = (pts[0].x+pts[1].x)/2, midY = (pts[0].y+pts[1].y)/2;
+      const rect = stage.getBoundingClientRect();
+      const localX = midX-rect.left, localY = midY-rect.top;
+      view.x = localX - (localX-view.x)*(newScale/view.scale);
+      view.y = localY - (localY-view.y)*(newScale/view.scale);
+      view.scale = newScale;
+      applyView();
+    } else if(dragging){
+      const dx = e.clientX-startX, dy = e.clientY-startY;
+      if(Math.hypot(dx,dy) > 5) moved = true;
+      view.x = startVX+dx; view.y = startVY+dy;
+      applyView();
+    }
+  });
+  function endPointer(e){
+    pointers.delete(e.pointerId);
+    if(pointers.size === 0){ dragging=false; stage.classList.remove("panning"); }
+  }
+  stage.addEventListener("pointerup", endPointer);
+  stage.addEventListener("pointercancel", endPointer);
+  stage.addEventListener("click", e=>{
+    if(moved){ e.stopPropagation(); e.preventDefault(); moved=false; }
+  }, true);
+  stage.addEventListener("wheel", e=>{
+    e.preventDefault();
+    const rect = stage.getBoundingClientRect();
+    const localX = e.clientX-rect.left, localY = e.clientY-rect.top;
+    const factor = Math.exp(-e.deltaY*0.0015);
+    const newScale = Math.min(Math.max(view.scale*factor, view.base*0.6), view.base*3.5);
+    view.x = localX - (localX-view.x)*(newScale/view.scale);
+    view.y = localY - (localY-view.y)*(newScale/view.scale);
+    view.scale = newScale;
+    applyView();
+  }, { passive:false });
+})();
 
 function render(){
-  sizeStage();
+  svg.setAttribute("viewBox", "0 0 680 660");
   svg.innerHTML = "";
   const defs = el("defs");
   defs.innerHTML = '<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#232A30" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>';
@@ -318,10 +394,11 @@ function renderNowStrip(){
 
 render();
 renderNowStrip();
+fitToContainer();
 let resizeTimer;
 window.addEventListener("resize", ()=>{
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(render, 150);
+  resizeTimer = setTimeout(fitToContainer, 150);
 });
 </script>
 </body>
