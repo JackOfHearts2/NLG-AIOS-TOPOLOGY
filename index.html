@@ -74,7 +74,20 @@
   .steps li{position:relative;padding:12px 0 12px 46px;font-size:15px;color:var(--text);border-bottom:1px solid var(--border);line-height:1.55;}
   .steps li:last-child{border-bottom:none;}
   .steps li::before{counter-increment:step;content:counter(step,decimal-leading-zero);position:absolute;left:0;top:12px;
-    font-family:var(--mono);font-size:13px;color:var(--gold);letter-spacing:.05em;}
+    font-family:var(--mono);font-size:13px;letter-spacing:.05em;}
+  .steps li.state-done::before{color:var(--green);}
+  .steps li.state-done{color:var(--text-3);text-decoration:line-through;text-decoration-color:var(--text-3);}
+  .steps li.state-now::before{color:var(--amber);}
+  .steps li.state-now{color:var(--text);}
+  .steps li.state-later::before{color:var(--text-3);}
+  .steps li.state-later{color:var(--text-2);}
+  .step-tag{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+    padding:1px 6px;margin-left:8px;border:1px solid currentColor;vertical-align:middle;}
+  .candidates{list-style:none;margin:0;padding:0;}
+  .candidates li{padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text);line-height:1.6;}
+  .candidates li:last-child{border-bottom:none;}
+  .tandem{font-size:14px;color:var(--text-2);line-height:1.65;background:var(--surface-2);border-left:2px solid var(--cyan);
+    padding:14px 16px;margin-top:4px;}
   .note{font-size:13px;color:var(--text-2);line-height:1.6;background:var(--surface-2);border-left:2px solid var(--amber);
     padding:14px 16px;margin-top:14px;}
   .question-box{border:1px dashed var(--cyan);padding:14px 16px;margin-top:14px;}
@@ -101,6 +114,7 @@
     <p class="eyebrow">Project Dawn // NLG-AIOS</p>
     <h1>Topology</h1>
     <p class="sub">select a node to view purpose · connections · setup</p>
+    <p class="sub" style="margin-top:2px;color:var(--text-3);font-size:10px;">content last updated Jul 12, 2026</p>
     <button class="back info-btn" onclick="openInfo()">about this map</button>
   </header>
   <div id="stage">
@@ -108,6 +122,7 @@
     <div class="legend">
       <span><i class="dot" style="background:var(--green)"></i>active</span>
       <span><i class="dot" style="background:var(--amber)"></i>in research</span>
+      <span><i class="dot" style="background:var(--cyan)"></i>proposed</span>
       <span><i class="dot" style="background:var(--gray)"></i>not started</span>
     </div>
     <div class="hint">tap / click a node</div>
@@ -125,9 +140,9 @@
 const HUB = window.NLG_DATA.hub;
 const ASPECTS = window.NLG_DATA.aspects;
 
-const COLOR = { active:"#5FD98A", research:"#F2B84B", "not-started":"#6B7378" };
-const DIM   = { active:"#1E3A2B", research:"#4A3B1E", "not-started":"#2A2F33" };
-const LABEL = { active:"active", research:"in research", "not-started":"not started" };
+const COLOR = { active:"#5FD98A", research:"#F2B84B", proposed:"#4FD1C5", "not-started":"#6B7378" };
+const DIM   = { active:"#1E3A2B", research:"#4A3B1E", proposed:"#1E3A3A", "not-started":"#2A2F33" };
+const LABEL = { active:"active", research:"in research", proposed:"proposed", "not-started":"not started" };
 
 const svg = document.getElementById("map");
 const cx=340, cy=340, hubR=65, nodeR=200, boxW=132, boxH=52;
@@ -160,16 +175,23 @@ function render(){
     g.addEventListener("click",()=>openDetail(a.id));
     g.addEventListener("keypress",(e)=>{ if(e.key==="Enter") openDetail(a.id); });
     const x = a._cx-boxW/2, y = a._cy-boxH/2;
+    const done = a.steps.filter(s=>s.state==="done").length;
+    const total = a.steps.length;
     g.innerHTML = `<rect x="${x}" y="${y}" width="${boxW}" height="${boxH}" rx="7" fill="${DIM[a.status]}" stroke="${COLOR[a.status]}" stroke-width="1"/>
       <text x="${a._cx}" y="${a._cy-10}" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="600" fill="#E8ECEE" font-family="-apple-system,sans-serif">${a.name}</text>
-      <text x="${a._cx}" y="${a._cy+11}" text-anchor="middle" dominant-baseline="central" font-size="10" fill="${COLOR[a.status]}" font-family="monospace" letter-spacing="0.03em">${LABEL[a.status]}</text>`;
+      <text x="${a._cx}" y="${a._cy+11}" text-anchor="middle" dominant-baseline="central" font-size="10" fill="${COLOR[a.status]}" font-family="monospace" letter-spacing="0.03em">${LABEL[a.status]} ${done}/${total}</text>`;
     svg.appendChild(g);
   });
 }
 
 function connList(arr){ return `<ul class="conn-list">${arr.map(c=>`<li>${c}</li>`).join("")}</ul>`; }
-function stepList(arr){ return `<ol class="steps">${arr.map(s=>`<li>${s}</li>`).join("")}</ol>`; }
+function stepList(arr){
+  const tagText = {done:"done", now:"in progress", later:"later"};
+  return `<ol class="steps">${arr.map(s=>`<li class="state-${s.state}">${s.text}<span class="step-tag">${tagText[s.state]}</span></li>`).join("")}</ol>`;
+}
 function questionBox(q){ return q ? `<div class="question-box"><span class="q-label">open question</span><span class="q-text">${q}</span></div>` : ""; }
+function optionsList(arr){ return arr ? `<p class="d-section-label">Candidate tools</p><ul class="candidates">${arr.map(o=>`<li>${o}</li>`).join("")}</ul>` : ""; }
+function tandemBox(t){ return t ? `<p class="d-section-label">How they would work in tandem</p><div class="tandem">${t}</div>` : ""; }
 
 function openInfo(){
   const body = document.getElementById("detailBody");
@@ -180,14 +202,17 @@ function openInfo(){
     <p class="d-section-label">Reading the colors</p>
     <ul class="conn-list">
       <li>Green: active and running today</li>
-      <li>Amber: tools identified, connection still being worked out</li>
-      <li>Gray: not started yet</li>
+      <li>Amber: tool confirmed in use, connection still being worked out</li>
+      <li>Cyan: candidate tools proposed, nothing chosen or started yet</li>
+      <li>Gray: not started, no candidates identified yet</li>
     </ul>
     <p class="d-section-label">Reading a node</p>
     <ul class="conn-list">
       <li>Purpose: what this piece is meant to do</li>
+      <li>Candidate tools: real options under consideration, with trade-offs, where nothing is decided yet</li>
+      <li>How they would work in tandem: the chain of handoffs between tools and Claude</li>
       <li>Connections needed: what has to be linked or authorized for it to work</li>
-      <li>Setup steps: the literal sequence to get there</li>
+      <li>Setup steps: the literal sequence to get there, each tagged done, in progress, or later</li>
       <li>Open question: a spot where the actual answer is still needed</li>
     </ul>
     <p class="d-section-label">Feedback</p>
@@ -226,6 +251,8 @@ function openDetail(id){
     <div class="d-row"><b>tool</b>${a.tool}</div>
     <p class="d-section-label">Purpose</p>
     <p class="purpose">${a.purpose}</p>
+    ${optionsList(a.options)}
+    ${tandemBox(a.tandem)}
     <p class="d-section-label">Connections needed</p>
     ${connList(a.connections)}
     <p class="d-section-label">Setup steps</p>
