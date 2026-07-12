@@ -49,16 +49,17 @@
     color:var(--text-2);font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:20px;cursor:pointer;pointer-events:auto;}
   .reset-view:hover{border-color:var(--gold-dim);color:var(--text);}
 
-  .milestone-rail{position:absolute;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:1;width:186px;pointer-events:none;}
-  .milestone-rail.left{left:22px;} .milestone-rail.right{right:22px;}
+  .milestone-rail{position:absolute;top:110px;bottom:60px;display:flex;flex-direction:column;justify-content:space-evenly;
+    z-index:1;width:clamp(200px, 19vw, 264px);pointer-events:none;}
+  .milestone-rail.left{left:24px;} .milestone-rail.right{right:24px;}
   .milestone-card{background:rgba(24,29,34,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-    border:1px solid rgba(212,175,55,.22);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;
-    transition:border-color .2s ease, transform .2s ease;pointer-events:auto;}
+    border:1px solid rgba(212,175,55,.22);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;
+    transition:border-color .2s ease, transform .2s ease;pointer-events:auto;cursor:pointer;}
   .milestone-card:hover{border-color:var(--gold-dim);transform:translateY(-2px);}
   .milestone-ring{flex:none;}
   .milestone-info{flex:1;min-width:0;}
-  .milestone-info .m-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--text-2);line-height:1.35;margin-bottom:3px;}
-  .milestone-info .m-pct{font-family:var(--serif);font-size:18px;color:var(--text);}
+  .milestone-info .m-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--text-2);line-height:1.4;margin-bottom:4px;}
+  .milestone-info .m-pct{font-family:var(--serif);font-size:20px;color:var(--text);}
   .milestone-info .m-frac{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-left:4px;}
   @media (max-width:920px){ .milestone-rail{display:none;} }
 
@@ -235,6 +236,7 @@ function fitToContainer(){
   let pinchStartDist=0, pinchStartScale=1;
 
   stage.addEventListener("pointerdown", e=>{
+    if(e.target.closest(".node, .hub-group")) return;
     stage.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
     if(pointers.size === 1){
@@ -460,16 +462,37 @@ function ringSVG(pct, colorVar){
       transform="rotate(-90 26 26)" data-target="${offset}"/>
   </svg>`;
 }
-function milestoneCardHTML(m){
+function milestoneCardHTML(m, idx){
   const {done,total} = tallyIds(m.ids);
   const pct = total ? Math.round((done/total)*100) : 0;
-  return `<div class="milestone-card">
+  return `<div class="milestone-card" onclick="openMilestone(${idx})">
     ${ringSVG(pct, "var(--gold)")}
     <div class="milestone-info">
       <div class="m-label">${m.label}</div>
       <span class="m-pct">${pct}%</span><span class="m-frac">${done}/${total}</span>
     </div>
   </div>`;
+}
+function openMilestone(idx){
+  const m = MILESTONES[idx];
+  const {done,total} = tallyIds(m.ids);
+  const pct = total ? Math.round((done/total)*100) : 0;
+  const rows = m.ids.map(id=>{
+    if(id === "__hub__") return {name:HUB.name, statusLabel:LABEL.active, action:`openHub()`};
+    const a = ASPECTS.find(x=>x.id===id);
+    return {name:a.name, statusLabel:LABEL[a.status], action:`openDetail('${a.id}')`};
+  });
+  const body = document.getElementById("detailBody");
+  body.innerHTML = `
+    <span class="d-badge" style="color:${COLOR.proposed};border-color:${COLOR.proposed}">milestone</span>
+    <h2 class="d-title">${m.label}</h2>
+    <div class="d-row"><b>progress</b>${pct}% &middot; ${done}/${total} steps done</div>
+    <p class="d-section-label">Included aspects</p>
+    <ul class="conn-list">${rows.map(r=>`<li style="cursor:pointer" onclick="${r.action}">${r.name} &middot; ${r.statusLabel}</li>`).join("")}</ul>
+  `;
+  document.getElementById("detail").classList.add("open");
+  document.getElementById("overlay").classList.add("open");
+  document.getElementById("stage").classList.add("dimmed");
 }
 function animateRingsAndCounters(container){
   container.querySelectorAll(".ring-fill").forEach(ring=>{
@@ -478,11 +501,10 @@ function animateRingsAndCounters(container){
   });
 }
 function renderMilestones(){
-  const left = [MILESTONES[0], MILESTONES[1]];
-  const right = [MILESTONES[2], MILESTONES[3], MILESTONES[4]];
-  document.getElementById("railLeft").innerHTML = left.map(milestoneCardHTML).join("");
-  document.getElementById("railRight").innerHTML = right.map(milestoneCardHTML).join("");
-  document.getElementById("milestoneTrack").innerHTML = MILESTONES.map(milestoneCardHTML).join("");
+  const leftIdx = [0,1], rightIdx = [2,3,4];
+  document.getElementById("railLeft").innerHTML = leftIdx.map(i=>milestoneCardHTML(MILESTONES[i], i)).join("");
+  document.getElementById("railRight").innerHTML = rightIdx.map(i=>milestoneCardHTML(MILESTONES[i], i)).join("");
+  document.getElementById("milestoneTrack").innerHTML = MILESTONES.map((m,i)=>milestoneCardHTML(m,i)).join("");
   animateRingsAndCounters(document.getElementById("railLeft"));
   animateRingsAndCounters(document.getElementById("railRight"));
   animateRingsAndCounters(document.getElementById("milestoneTrack"));
