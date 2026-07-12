@@ -49,6 +49,39 @@
     color:var(--text-2);font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:20px;cursor:pointer;pointer-events:auto;}
   .reset-view:hover{border-color:var(--gold-dim);color:var(--text);}
 
+  .milestone-rail{position:absolute;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:1;width:186px;pointer-events:none;}
+  .milestone-rail.left{left:22px;} .milestone-rail.right{right:22px;}
+  .milestone-card{background:rgba(24,29,34,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(212,175,55,.22);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;
+    transition:border-color .2s ease, transform .2s ease;pointer-events:auto;}
+  .milestone-card:hover{border-color:var(--gold-dim);transform:translateY(-2px);}
+  .milestone-ring{flex:none;}
+  .milestone-info{flex:1;min-width:0;}
+  .milestone-info .m-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--text-2);line-height:1.35;margin-bottom:3px;}
+  .milestone-info .m-pct{font-family:var(--serif);font-size:18px;color:var(--text);}
+  .milestone-info .m-frac{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-left:4px;}
+  @media (max-width:920px){ .milestone-rail{display:none;} }
+
+  #milestoneStrip{display:none;flex:none;padding:14px 30px 0;}
+  @media (max-width:920px){ #milestoneStrip{display:block;} }
+  #milestoneStrip .now-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:0 0 10px;}
+  .milestone-track{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;}
+  .milestone-track .milestone-card{flex:none;width:210px;}
+
+  .overall-progress{display:flex;align-items:center;gap:10px;margin-top:8px;}
+  .overall-progress .op-track{width:200px;max-width:40vw;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden;}
+  .overall-progress .op-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));
+    border-radius:3px;transition:width 1.1s cubic-bezier(.2,.8,.2,1);}
+  .overall-progress .op-pct{font-family:var(--mono);font-size:12px;color:var(--gold);min-width:36px;}
+
+  .node-pulse{position:absolute;border:2px solid;border-radius:50%;pointer-events:none;
+    animation:pulse-out .55s cubic-bezier(.2,.8,.2,1) forwards;}
+  @keyframes pulse-out{ from{ transform:scale(.3); opacity:.9; } to{ transform:scale(2.4); opacity:0; } }
+
+  #detail{transition:transform .38s cubic-bezier(.16,.8,.2,1), opacity .3s ease;}
+  #detail:not(.open){opacity:0;}
+  #detail.open{opacity:1;}
+
 
   #overlay{position:absolute;inset:0;background:rgba(5,6,7,.55);opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:2;}
   #overlay.open{opacity:1;pointer-events:auto;}
@@ -132,11 +165,18 @@
     <h1>Topology</h1>
     <p class="sub">select a node to view purpose · connections · setup</p>
     <p class="sub" style="margin-top:2px;color:var(--text-3);font-size:10px;">content last updated Jul 12, 2026</p>
+    <div class="overall-progress">
+      <span class="sub" style="margin:0;">overall progress</span>
+      <div class="op-track"><div class="op-fill" id="opFill"></div></div>
+      <span class="op-pct" id="opPct">0%</span>
+    </div>
     <button class="back info-btn" onclick="openInfo()">about this map</button>
   </header>
   <div id="stage">
     <svg id="map" role="img" aria-label="Hub and spoke topology of NLG AI implementation"></svg>
     <button class="reset-view" onclick="fitToContainer(true)">reset view</button>
+    <div class="milestone-rail left" id="railLeft"></div>
+    <div class="milestone-rail right" id="railRight"></div>
     <div class="map-footer">
       <div class="legend">
         <span><i class="dot" style="background:var(--green)"></i>active</span>
@@ -146,6 +186,10 @@
       </div>
       <div class="hint">drag to pan &middot; pinch or scroll to zoom &middot; tap a node</div>
     </div>
+  </div>
+  <div id="milestoneStrip">
+    <p class="now-label">milestones</p>
+    <div id="milestoneTrack" class="milestone-track"></div>
   </div>
   <div id="nowStrip">
     <p class="now-label">in progress right now</p>
@@ -264,7 +308,7 @@ function render(){
   });
 
   const hub = el("g",{class:"hub-group hub-glow", tabindex:"0", role:"button", "aria-label":"Claude central hub"});
-  hub.addEventListener("click",()=>openHub());
+  hub.addEventListener("click",(e)=>{ pulseAt(e.clientX, e.clientY, "#D4AF37"); openHub(); });
   hub.addEventListener("keypress",(e)=>{ if(e.key==="Enter") openHub(); });
   hub.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${hubR}" fill="#181D22" stroke="#D4AF37" stroke-width="1.5"/>
     <text x="${cx}" y="${cy-8}" text-anchor="middle" dominant-baseline="central" font-size="16" fill="#E8ECEE" font-family="Georgia,serif">Claude</text>
@@ -273,7 +317,7 @@ function render(){
 
   ASPECTS.forEach(a=>{
     const g = el("g",{class:"node", style:`color:${COLOR[a.status]}`, tabindex:"0", role:"button", "aria-label":a.name});
-    g.addEventListener("click",()=>openDetail(a.id));
+    g.addEventListener("click",(e)=>{ pulseAt(e.clientX, e.clientY, COLOR[a.status]); openDetail(a.id); });
     g.addEventListener("keypress",(e)=>{ if(e.key==="Enter") openDetail(a.id); });
     const x = a._cx-boxW/2, y = a._cy-boxH/2;
     const done = a.steps.filter(s=>s.state==="done").length;
@@ -392,8 +436,86 @@ function renderNowStrip(){
   });
 }
 
+// ---- Milestones: grouped rollups of the same done/now/later step data ----
+const MILESTONES = [
+  { label:"Foundation", ids:["__hub__","marketing"] },
+  { label:"Financial Operations", ids:["finance"] },
+  { label:"Client & Brokerage Systems", ids:["brokerage","clientexp"] },
+  { label:"Internal Operations", ids:["propmgmt","hr","legal"] },
+  { label:"Executive Visibility", ids:["executive"] },
+];
+function stepsFor(id){ return id === "__hub__" ? HUB.steps : ASPECTS.find(a=>a.id===id).steps; }
+function tallyIds(ids){
+  let done=0, total=0;
+  ids.forEach(id=>{ const steps = stepsFor(id); total += steps.length; done += steps.filter(s=>s.state==="done").length; });
+  return {done, total};
+}
+function ringSVG(pct, colorVar){
+  const r=20, c=2*Math.PI*r;
+  const offset = c * (1 - pct/100);
+  return `<svg class="milestone-ring" width="52" height="52" viewBox="0 0 52 52">
+    <circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--border)" stroke-width="4"/>
+    <circle class="ring-fill" cx="26" cy="26" r="${r}" fill="none" stroke="${colorVar}" stroke-width="4"
+      stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c}"
+      transform="rotate(-90 26 26)" data-target="${offset}"/>
+  </svg>`;
+}
+function milestoneCardHTML(m){
+  const {done,total} = tallyIds(m.ids);
+  const pct = total ? Math.round((done/total)*100) : 0;
+  return `<div class="milestone-card">
+    ${ringSVG(pct, "var(--gold)")}
+    <div class="milestone-info">
+      <div class="m-label">${m.label}</div>
+      <span class="m-pct">${pct}%</span><span class="m-frac">${done}/${total}</span>
+    </div>
+  </div>`;
+}
+function animateRingsAndCounters(container){
+  container.querySelectorAll(".ring-fill").forEach(ring=>{
+    const target = parseFloat(ring.dataset.target);
+    requestAnimationFrame(()=>{ ring.style.transition = "stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)"; ring.style.strokeDashoffset = target; });
+  });
+}
+function renderMilestones(){
+  const left = [MILESTONES[0], MILESTONES[1]];
+  const right = [MILESTONES[2], MILESTONES[3], MILESTONES[4]];
+  document.getElementById("railLeft").innerHTML = left.map(milestoneCardHTML).join("");
+  document.getElementById("railRight").innerHTML = right.map(milestoneCardHTML).join("");
+  document.getElementById("milestoneTrack").innerHTML = MILESTONES.map(milestoneCardHTML).join("");
+  animateRingsAndCounters(document.getElementById("railLeft"));
+  animateRingsAndCounters(document.getElementById("railRight"));
+  animateRingsAndCounters(document.getElementById("milestoneTrack"));
+
+  let done=0, total=0;
+  [HUB.steps, ...ASPECTS.map(a=>a.steps)].forEach(steps=>{ total+=steps.length; done+=steps.filter(s=>s.state==="done").length; });
+  const overallPct = total ? Math.round((done/total)*100) : 0;
+  requestAnimationFrame(()=>{ document.getElementById("opFill").style.width = overallPct+"%"; });
+  let shown=0;
+  const counter = setInterval(()=>{
+    shown = Math.min(shown+2, overallPct);
+    document.getElementById("opPct").textContent = shown+"%";
+    if(shown>=overallPct) clearInterval(counter);
+  }, 20);
+}
+
+// ---- Node click pulse: a small burst right where the click happened ----
+function pulseAt(clientX, clientY, color){
+  const stage = document.getElementById("stage");
+  const rect = stage.getBoundingClientRect();
+  const p = document.createElement("div");
+  p.className = "node-pulse";
+  p.style.left = (clientX-rect.left-22)+"px";
+  p.style.top = (clientY-rect.top-22)+"px";
+  p.style.width = "44px"; p.style.height = "44px";
+  p.style.borderColor = color;
+  stage.appendChild(p);
+  setTimeout(()=>p.remove(), 600);
+}
+
 render();
 renderNowStrip();
+renderMilestones();
 fitToContainer();
 let resizeTimer;
 window.addEventListener("resize", ()=>{
