@@ -2,19 +2,19 @@ window.NLG_DATA = {
   lastUpdated: "Jul 12, 2026",
   hub: {
   name:"Claude, central hub",
-  status:"active",
-  tool:"Claude (Pro / Max / Team)",
-  purpose:"Coordinates every aspect of Project Dawn. Drafts content and communications, watches connected tools for triggers that matter, such as a lease renewal date, a new lead, or a month end close, and routes anything going out externally for approval before it sends.",
+  status:"research",
+  tool:"Claude Team (planned, account not yet set up)",
+  purpose:"Will coordinate every aspect of Project Dawn once live. Drafts content and communications, watches connected tools for triggers that matter, such as a lease renewal date, a new lead, or a month end close, and routes anything going out externally for approval before it sends. Still in the preliminary phase: nothing has launched yet.",
   connections:[
-    "A paid Claude account (Pro is enough to start, Cowork is included from Pro and up)",
-    "Native connectors turned on for whichever tools apply: Google Drive, Gmail, Calendar, Slack, Microsoft 365",
+    "A paid Claude account on the Team plan. Pro was considered but its usage limits are too tight for a small business with multiple users",
+    "Native connectors turned on for whichever tools apply: Gmail, Google Calendar, Google Drive, Dropbox, Outlook, OneDrive, Slack, Microsoft 365",
     "MCP registry connections for additional business tools as they are identified",
     "Zapier as a bridge for any tool with no direct connector of its own"
   ],
   bridgeWorkflow:"Native connectors first; Zapier as the go-between where a tool supports it",
   steps:[
-    {text:"Confirm which Claude plan is active for this work", state:"done"},
-    {text:"Turn on the native connectors that matter first, usually Gmail and Drive", state:"now"},
+    {text:"Plan chosen: Claude Team. Pro's usage limits are already tight in single-person use, so it won't hold up for a multi-user business", state:"done"},
+    {text:"Set up the Claude Team account, then turn on the first native connectors: Gmail, Google Drive, Dropbox, Outlook, OneDrive", state:"now"},
     {text:"Add Zapier as a bridge once a tool without a direct connector needs to reach Claude", state:"later"},
     {text:"Keep this topology updated as each spoke moves from placeholder to live", state:"now"}
   ],

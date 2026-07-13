@@ -104,6 +104,18 @@
   .m-row.open .m-row-body{grid-template-rows:1fr;padding:0 14px 18px;}
   .m-row-inner{min-height:0;overflow:hidden;}
 
+  /* Connection spine: a gold line descends from the Claude card, each aspect branches off it */
+  .m-row.m-hub{margin-bottom:0;}
+  .m-spine{display:flex;}
+  .m-spine-rail{width:22px;flex:none;display:flex;justify-content:center;}
+  .m-spine-line{width:2px;background:var(--gold-dim);}
+  .m-spine-rows{flex:1;min-width:0;padding-top:12px;}
+  .m-branch{display:flex;align-items:flex-start;margin-bottom:10px;}
+  .m-branch-arm{width:16px;height:2px;flex:none;margin-top:28px;border-radius:1px;
+    transition:box-shadow .25s ease;}
+  .m-branch:has(.m-row.open) .m-branch-arm{box-shadow:0 0 8px currentColor;}
+  .m-branch .m-row{flex:1;min-width:0;margin-bottom:0;}
+
   /* Overall Progress: wide horizontal bar that fills as steps complete, with milestone ticks */
   #progressWrap{flex:none;padding:8px 0 14px;position:relative;z-index:1;cursor:pointer;
     transition:transform .28s cubic-bezier(.2,.8,.2,1), filter .28s ease;}
@@ -578,7 +590,7 @@ function openInfo(){
 
 function hubBodyHTML(){
   return `
-    <span class="d-badge" style="color:${COLOR.active};border-color:${COLOR.active}">${LABEL.active}</span>
+    <span class="d-badge" style="color:${COLOR[HUB.status]};border-color:${COLOR[HUB.status]}">${LABEL[HUB.status]}</span>
     <h2 class="d-title">${HUB.name}</h2>
     <div class="d-row"><b>Tool</b><span>${toolLine(HUB.tool)}</span></div>
     <p class="d-section-label">Purpose</p>
@@ -709,7 +721,7 @@ function openMilestone(idx){
   const {done,total} = tallyIds(m.ids);
   const pct = total ? Math.round((done/total)*100) : 0;
   const sections = m.ids.map(id=>{
-    if(id === "__hub__") return {id, name:HUB.name, statusLabel:LABEL.active, steps:HUB.steps, action:"openHub()"};
+    if(id === "__hub__") return {id, name:HUB.name, statusLabel:LABEL[HUB.status], steps:HUB.steps, action:"openHub()"};
     const a = ASPECTS.find(x=>x.id===id);
     return {id, name:a.name, statusLabel:LABEL[a.status], steps:a.steps, action:`openDetail('${a.id}')`};
   });
@@ -807,29 +819,38 @@ function pulseAt(clientX, clientY, color){
   setTimeout(()=>p.remove(), 600);
 }
 
-// ---- Mobile accordion: Claude card + aspect rows, expanding in place ----
+// ---- Mobile spine: Claude card on top, a gold line descending from it, every aspect row branching off ----
 // Bodies are always in the DOM (collapsed via grid-template-rows) so toggling
 // is a class flip that animates, not a re-render that snaps.
 const mobileOpen = new Set();
+function mobileRowHTML(id, item){
+  const status = item.status;
+  const done = item.steps.filter((s,i)=>effectiveDone(id,i)).length;
+  const pct = item.steps.length ? Math.round((done/item.steps.length)*100) : 0;
+  const open = mobileOpen.has(id);
+  return `<div class="m-row ${id==="__hub__" ? "m-hub" : ""} ${open ? "open" : ""}" id="mrow-${id}" style="border-left:3px solid ${id==="__hub__" ? "var(--gold)" : COLOR[status]}">
+    <button class="m-row-head" onclick="toggleMobileRow('${id}')" aria-expanded="${open}">
+      <span class="m-ring">${ringSVG(pct, id==="__hub__" ? "var(--gold)" : COLOR[status], 34)}</span>
+      <span class="m-row-name">${item.name}${item.priority ? ' <span class="m-star">&#9733;</span>' : ""}</span>
+      <span class="m-row-meta" style="color:${COLOR[status]}">${LABEL[status]} &middot; ${done}/${item.steps.length}</span>
+      <span class="m-chev">${open ? "&minus;" : "+"}</span>
+    </button>
+    <div class="m-row-body"><div class="m-row-inner">${id==="__hub__" ? hubBodyHTML() : aspectBodyHTML(item)}</div></div>
+  </div>`;
+}
 function renderMobileList(){
   const list = document.getElementById("mobileList");
   if(!list) return;
-  const rows = [["__hub__", HUB], ...ASPECTS.map(a=>[a.id, a])];
-  list.innerHTML = rows.map(([id,item])=>{
-    const status = id === "__hub__" ? "active" : item.status;
-    const done = item.steps.filter((s,i)=>effectiveDone(id,i)).length;
-    const pct = item.steps.length ? Math.round((done/item.steps.length)*100) : 0;
-    const open = mobileOpen.has(id);
-    return `<div class="m-row ${id==="__hub__" ? "m-hub" : ""} ${open ? "open" : ""}" id="mrow-${id}" style="border-left:3px solid ${id==="__hub__" ? "var(--gold)" : COLOR[status]}">
-      <button class="m-row-head" onclick="toggleMobileRow('${id}')" aria-expanded="${open}">
-        <span class="m-ring">${ringSVG(pct, id==="__hub__" ? "var(--gold)" : COLOR[status], 34)}</span>
-        <span class="m-row-name">${item.name}${item.priority ? ' <span class="m-star">&#9733;</span>' : ""}</span>
-        <span class="m-row-meta" style="color:${COLOR[status]}">${LABEL[status]} &middot; ${done}/${item.steps.length}</span>
-        <span class="m-chev">${open ? "&minus;" : "+"}</span>
-      </button>
-      <div class="m-row-body"><div class="m-row-inner">${id==="__hub__" ? hubBodyHTML() : aspectBodyHTML(item)}</div></div>
+  const branches = ASPECTS.map(a=>
+    `<div class="m-branch">
+      <div class="m-branch-arm" style="background:${COLOR[a.status]};color:${COLOR[a.status]}"></div>
+      ${mobileRowHTML(a.id, a)}
+    </div>`).join("");
+  list.innerHTML = mobileRowHTML("__hub__", HUB) +
+    `<div class="m-spine">
+      <div class="m-spine-rail"><div class="m-spine-line"></div></div>
+      <div class="m-spine-rows">${branches}</div>
     </div>`;
-  }).join("");
   animateRingsAndCounters(list);
 }
 function toggleMobileRow(id){
