@@ -10,12 +10,14 @@ window.NLG_DATA = {
     "MCP registry connections for additional business tools as they are identified",
     "Zapier as a bridge for any tool with no direct connector of its own"
   ],
+  bridgeWorkflow:"Native connectors first; Zapier as the go-between where a tool supports it",
   steps:[
     {text:"Confirm which Claude plan is active for this work", state:"done"},
     {text:"Turn on the native connectors that matter first, usually Gmail and Drive", state:"now"},
     {text:"Add Zapier as a bridge once a tool without a direct connector needs to reach Claude", state:"later"},
     {text:"Keep this topology updated as each spoke moves from placeholder to live", state:"now"}
   ],
+  note:"Zapier is a tool that sits between two tools that can't talk to each other directly. Since we're connecting a bunch of different systems here, some of them just aren't built to talk to each other on their own. Zapier steps in at that point as the go-between, kind of like an adapter. Something happens in one tool, Zapier notices, and makes something happen in the other one automatically. It's not free forever though, the free version only covers about 100 small actions a month, past that it's roughly $20 to $30 a month. And it only works if the tool on the other end has actually agreed to plug into it. Buildium hasn't, so that one needs a different kind of bridge instead.",
   question:null
 },
   aspects: [
@@ -30,6 +32,7 @@ window.NLG_DATA = {
       "SuperProfile account connected to the Instagram Business profile for AutoDM and link-in-bio",
       "Claude Team project holding brand voice, property details, and the five-audience framework"
     ],
+    bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Convert the Facebook Page from personal to Professional/Business account", state:"done"},
       {text:"Link the Page to Meta Business Suite", state:"done"},
@@ -44,14 +47,20 @@ window.NLG_DATA = {
     note:"Only organic posting is live currently, every few days on Facebook and Instagram. Ads, AutoDM, and the link-in-bio page have not been set up yet. Ad launch is paused pending the property's Certificate of Use.",
     question:null },
 
-  { id:"finance", name:"Finance AI", status:"research", angle:-50,
+  { id:"finance", name:"Finance AI", status:"research", angle:-54,
     tool:"QuickBooks Online",
-    purpose:"Keeps QuickBooks data flowing into a form Claude can use, so month-end close and reporting get drafted instead of assembled by hand.",
+    purpose:"Keeps QuickBooks data flowing into a form Claude can use, so month-end close and reporting get drafted instead of assembled by hand. Also covers contractor payment tracking and 1099 filing: every agent is a 1099 independent contractor, so this is contractor payments, not traditional payroll.",
+    options:[
+      "QuickBooks Contractor Payments / 1099 Center: already included in the existing QuickBooks subscription, no new cost. The first path for contractor payment tracking and 1099 filing.",
+      "Gusto, Contractor Only plan: $35/month plus $6 per contractor. The alternative if QuickBooks' built-in contractor tooling falls short."
+    ],
     connections:[
       "QuickBooks Online account (already in use, confirmed system of record)",
+      "QuickBooks Contractor Payments / 1099 Center for contractor payment tracking and 1099 filing",
       "A layering tool once selected (Booke AI, Finlens, or Dext) connected through QuickBooks' own API",
       "Zapier as a fallback bridge if the chosen tool doesn't connect to Claude directly"
     ],
+    bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Confirm the QuickBooks Online plan supports API access (most do)", state:"later"},
       {text:"Pick one layering tool based on the actual need: categorization, receipts, or GAAP schedules", state:"later"},
@@ -62,13 +71,15 @@ window.NLG_DATA = {
     note:null,
     question:"Which layering tool fits best: Booke AI, Finlens, or Dext, or is a different approach preferred?" },
 
-  { id:"brokerage", name:"Brokerage AI", status:"research", angle:-10,
+  { id:"brokerage", name:"Brokerage AI", status:"research", angle:-18,
     tool:"Buffini Referral Maker CRM",
-    purpose:"Should eventually surface relationship touchpoints and property-related reminders sitting inside client records in Buffini.",
+    purpose:"Should eventually surface relationship touchpoints and property-related reminders sitting inside client records in Buffini. Also covers agent performance tracking (active agents, top producers) and sales/acquisition tracking across the brokerage.",
     connections:[
       "Buffini Referral Maker CRM account (confirmed in use)",
-      "Unconfirmed: no built-in AI agent, no confirmed API or export function found publicly"
+      "Unconfirmed: no built-in AI agent, no confirmed API or export function found publicly",
+      "A source for agent performance and sales/acquisition data, once one is confirmed"
     ],
+    bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Confirmation gathered on whether API access, data export, or webhook support is available", state:"later"},
       {text:"A path chosen based on that answer: scheduled export to Drive, Claude in Chrome browsing the dashboard, or reading Buffini's own notification emails through Gmail", state:"later"},
@@ -78,41 +89,43 @@ window.NLG_DATA = {
     note:null,
     question:"Does Buffini support API access, data export, or webhook integration?" },
 
-  { id:"propmgmt", name:"Prop. mgmt AI", status:"proposed", angle:30,
-    tool:"Not yet identified",
+  { id:"propmgmt", name:"Prop. mgmt AI", status:"research", angle:18,
+    tool:"Buildium (confirmed in use)",
     purpose:"Intended to handle lease renewal reminders, maintenance follow-ups, and owner reports without manual tracking.",
-    options:[
-      "AppFolio: the tool already named in the broker's own technology stack notes. Widely used, has tenant and owner portals, but API access for a small account needs to be confirmed directly with AppFolio.",
-      "Buildium: a common alternative for smaller portfolios, generally considered easier to get started with than AppFolio at this scale."
+    tandem:"Buildium holds the lease and maintenance dates and surfaces the trigger, Claude drafts the reminder, and it goes to the broker for approval before it sends to the tenant or owner.",
+    connections:[
+      "Buildium account (confirmed in use)",
+      "Buildium's native, built-in QuickBooks integration, no bridge needed on that link",
+      "A path for Claude to reach Buildium data: Buildium's own API sits behind the $400/month Premium plan, and Buildium has no native Zapier support at all"
     ],
-    tandem:"Whichever platform holds lease and maintenance dates would surface the trigger, Claude drafts the reminder, and it goes to the broker for approval before it sends to the tenant or owner.",
-    connections:["To be determined after this week's process walkthrough"],
+    bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"See how leases, renewals, and maintenance are tracked today", state:"now"},
-      {text:"Confirm whether AppFolio is actually in use or still just planned", state:"now"},
+      {text:"Platform confirmed: Buildium, already in use (AppFolio considered but lost out)", state:"done"},
       {text:"Connection method determined once the tool is confirmed", state:"later"},
       {text:"Reminder workflow designed: detect the date, notify Claude, draft the message, get approval, send", state:"later"}
     ],
-    note:"This detect, notify, draft, approve, send pattern is the model used across every aspect, not only this one.",
-    question:"Is AppFolio actually in use today, or is a different platform (or a spreadsheet) handling this?" },
+    note:"Buildium already integrates natively with QuickBooks, so the finance link needs no bridge. Custom connections of the kind Claude would need are a different story: Buildium's API is gated behind the $400/month Premium plan and there is no native Zapier support. This detect, notify, draft, approve, send pattern is the model used across every aspect, not only this one.",
+    question:"Is the $400/month Premium plan worth it for API access, or is a lighter bridge enough to start?" },
 
-  { id:"hr", name:"HR AI", status:"proposed", angle:70,
+  { id:"hr", name:"HR AI", status:"proposed", angle:54,
     tool:"Not yet identified",
-    purpose:"Intended to handle onboarding checklists and license tracking across the independent contractor agents.",
+    purpose:"Intended to handle onboarding checklists, license tracking and verification, and 1099 tax filing coordination across the agents, who are all independent contractors rather than W-2 employees.",
     options:[
       "No dedicated HR platform proposed yet. At this size, a shared onboarding checklist tracked in Notion or Drive, with Claude drafting reminders, likely covers the need without adding a paid HR system built for W-2 employees rather than independent contractor agents."
     ],
     tandem:"A shared checklist would hold the actual status per agent, and Claude would draft the nudge when something is overdue, rather than a dedicated system running its own automation.",
     connections:["To be determined"],
+    bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Current onboarding and recruiting process reviewed", state:"now"},
       {text:"Confirmed whether a lightweight tracker is sufficient or a dedicated platform is truly needed", state:"later"},
       {text:"Connection method determined", state:"later"}
     ],
-    note:null,
-    question:"Is a simple shared checklist enough here, or is dedicated HR software actually needed for this team?" },
+    note:"Settled: no dedicated HR platform. A lightweight shared tracker covers a team of independent contractors; 1099 filing itself lives with Finance AI.",
+    question:"Which contractor task should Claude draft reminders for first: onboarding checklists, license renewals, or 1099 season?" },
 
-  { id:"legal", name:"Legal AI", status:"proposed", angle:110,
+  { id:"legal", name:"Legal AI", status:"proposed", angle:90,
     tool:"Not yet identified",
     purpose:"Intended to support compliance tracking and document review, tied to Fair Housing and NAR requirements.",
     options:[
@@ -121,6 +134,7 @@ window.NLG_DATA = {
     ],
     tandem:"Whichever platform holds the compliance checklist would flag a gap, and Claude would draft the follow-up request to the agent, with the broker approving before anything is sent or filed.",
     connections:["To be determined"],
+    bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Current compliance and document review process mapped", state:"now"},
       {text:"One platform chosen based on transaction volume and budget", state:"later"},
@@ -129,7 +143,7 @@ window.NLG_DATA = {
     note:"Ties directly to the Real Estate Compliance resource category (Fair Housing, NAR materials).",
     question:"Is Dotloop's transaction volume and pricing enough here, or does compliance oversight need to be stronger than that?" },
 
-  { id:"clientexp", name:"Client exp. AI", status:"proposed", angle:150,
+  { id:"clientexp", name:"Client exp. AI", status:"proposed", angle:126,
     tool:"Not yet identified",
     purpose:"Intended to handle inquiries from buyers, sellers, owners, and tenants outside business hours.",
     options:[
@@ -139,6 +153,7 @@ window.NLG_DATA = {
     ],
     tandem:"If Quo is the pick, Sona would take the live call, then hand the transcript and summary to Claude, which drafts any follow-up message for approval before it reaches the client or gets logged in the CRM. If the widget route is chosen instead, Claude handles the conversation directly rather than a second AI system running alongside it.",
     connections:["To be determined"],
+    bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Current inquiry handling process reviewed", state:"now"},
       {text:"A direction chosen: Quo's voice agent, a widget plus Claude, or a standalone platform", state:"later"},
@@ -147,7 +162,7 @@ window.NLG_DATA = {
     note:null,
     question:"Does Quo's phone-based approach fit better than a web chat widget, given how most inquiries actually come in today?" },
 
-  { id:"executive", name:"Executive AI", status:"proposed", angle:190,
+  { id:"executive", name:"Executive AI", status:"proposed", angle:162,
     tool:"Not yet identified",
     purpose:"Intended as the one dashboard giving visibility across every aspect once they are running.",
     options:[
@@ -157,6 +172,7 @@ window.NLG_DATA = {
     ],
     tandem:"This one sits downstream of every other hub rather than connecting to anything directly. Once Marketing, Finance, and Brokerage AI are live, their summary numbers would feed into whichever tool gets picked here.",
     connections:["To be determined, depends on every other spoke existing first"],
+    bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"What matters most on a single dashboard defined", state:"later"},
       {text:"Data sources identified once other aspects are live", state:"later"},
@@ -165,12 +181,30 @@ window.NLG_DATA = {
     note:"Likely the last aspect built, since it pulls from every other hub once they exist.",
     question:"What information matters most on a single dashboard view?" },
 
-  { id:"other", name:"Other AI (3)", status:"not-started", angle:230,
-    tool:"Investment AI, Capital Raising AI, Construction & Development AI",
-    purpose:"Grouped placeholder for three aspects on the NLG-AIOS list that have not been started.",
+  { id:"investment", name:"Investment AI", status:"proposed", angle:198, priority:true,
+    tool:"Not yet identified",
+    purpose:"Intended to analyze investment opportunities and assets under management: underwriting, cash flow analysis, cap rate and IRR calculations, risk scoring, comparable sales analysis, and acquisition recommendations.",
+    options:[
+      "Stessa: free, built for individual investors and smaller portfolios, proportionate to this scale. Tracks income, expenses, and returns per property.",
+      "Institutional platforms (Agora, ARGUS Enterprise, RealPage AIM): built for much larger funds and portfolios, would be overkill here."
+    ],
     connections:["To be determined"],
+    bridgeWorkflow:"Not yet determined",
+    steps:[
+      {text:"Confirm actual portfolio size and what needs tracking", state:"later"},
+      {text:"Evaluate Stessa against that need", state:"later"},
+      {text:"Connection method determined", state:"later"}
+    ],
+    note:null,
+    question:"Does Stessa's free tier cover what's actually being tracked, or does portfolio complexity call for something more?" },
+
+  { id:"other", name:"Future AI (2)", status:"not-started", angle:234,
+    tool:"Capital Raising AI, Construction & Development AI",
+    purpose:"Grouped placeholder for two aspects on the NLG-AIOS list that have not been started.",
+    connections:["To be determined"],
+    bridgeWorkflow:"Not yet determined",
     steps:[{text:"Revisited once the core aspects above are underway", state:"later"}],
-    note:"Grouped only to keep the map readable. Each is still its own aspect on the full roadmap.",
-    question:"Which of these three (investment, capital raising, construction) is the priority once started?" },
+    note:"Grouped only to keep the map readable. Each is still its own aspect on the full roadmap. Investment AI was pulled out of this group into its own node.",
+    question:"Which of these two (capital raising, construction) is the priority once started?" },
 ]
 };
