@@ -1,4 +1,5 @@
 window.NLG_DATA = {
+  lastUpdated: "Jul 12, 2026",
   hub: {
   name:"Claude, central hub",
   status:"active",
