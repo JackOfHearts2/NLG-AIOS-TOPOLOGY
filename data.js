@@ -110,7 +110,7 @@ window.NLG_DATA = {
     question:"Is the $400/month Premium plan worth it for API access, or is a lighter bridge enough to start?" },
 
   { id:"hr", name:"HR AI", status:"proposed", angle:54,
-    tool:"Not yet identified",
+    tool:"Proposed: Notion shared tracker",
     purpose:"Intended to handle onboarding checklists, license tracking and verification, and 1099 tax filing coordination across the agents, who are all independent contractors rather than W-2 employees.",
     options:[
       "No dedicated HR platform proposed yet. At this size, a shared onboarding checklist tracked in Notion or Drive, with Claude drafting reminders, likely covers the need without adding a paid HR system built for W-2 employees rather than independent contractor agents."
@@ -127,7 +127,7 @@ window.NLG_DATA = {
     question:"Which contractor task should Claude draft reminders for first: onboarding checklists, license renewals, or 1099 season?" },
 
   { id:"legal", name:"Legal AI", status:"proposed", angle:90,
-    tool:"Not yet identified",
+    tool:"Proposed: Dotloop",
     purpose:"Intended to support compliance tracking and document review, tied to Fair Housing and NAR requirements.",
     options:[
       "Dotloop: transaction management with e-signatures and compliance tracking built in, priced for a small brokerage (around $32 to $35 per month), free tier available for low transaction volume.",
@@ -145,7 +145,7 @@ window.NLG_DATA = {
     question:"Is Dotloop's transaction volume and pricing enough here, or does compliance oversight need to be stronger than that?" },
 
   { id:"clientexp", name:"Client exp. AI", status:"proposed", angle:126,
-    tool:"Not yet identified",
+    tool:"Proposed: Quo (formerly OpenPhone)",
     purpose:"Intended to handle inquiries from buyers, sellers, owners, and tenants outside business hours.",
     options:[
       "Quo (formerly OpenPhone): a business phone system with a built-in AI voice agent (Sona) that answers calls 24/7, texts, transcribes and summarizes every call, and tags conversations by topic. Priced per user, Business tier around $23/month, Scale tier (with the fuller AI feature set) around $35/month.",
@@ -164,7 +164,7 @@ window.NLG_DATA = {
     question:"Does Quo's phone-based approach fit better than a web chat widget, given how most inquiries actually come in today?" },
 
   { id:"executive", name:"Executive AI", status:"proposed", angle:162,
-    tool:"Not yet identified",
+    tool:"Proposed: Notion dashboards",
     purpose:"Intended as the one dashboard giving visibility across every aspect once they are running.",
     options:[
       "Notion dashboard views: since Notion is already the planned knowledge base in the broker's own technology stack, its newer dashboard feature can combine KPIs from other tools without adding a separate subscription.",
@@ -183,7 +183,7 @@ window.NLG_DATA = {
     question:"What information matters most on a single dashboard view?" },
 
   { id:"investment", name:"Investment AI", status:"proposed", angle:198, priority:true,
-    tool:"Not yet identified",
+    tool:"Proposed: Stessa",
     purpose:"Intended to analyze investment opportunities and assets under management: underwriting, cash flow analysis, cap rate and IRR calculations, risk scoring, comparable sales analysis, and acquisition recommendations.",
     options:[
       "Stessa: free, built for individual investors and smaller portfolios, proportionate to this scale. Tracks income, expenses, and returns per property.",
@@ -200,8 +200,12 @@ window.NLG_DATA = {
     question:"Does Stessa's free tier cover what's actually being tracked, or does portfolio complexity call for something more?" },
 
   { id:"other", name:"Future AI (2)", status:"not-started", angle:234,
-    tool:"Capital Raising AI, Construction & Development AI",
-    purpose:"Grouped placeholder for two aspects on the NLG-AIOS list that have not been started.",
+    tool:"Proposed: SyndicationPro (capital raising), Buildertrend (construction)",
+    purpose:"Grouped placeholder for two aspects on the NLG-AIOS list that have not been started: Capital Raising AI and Construction & Development AI.",
+    options:[
+      "Capital raising: SyndicationPro, real estate syndication software with an investor CRM, capital-raise workflows, and an investor portal, sized for small and mid-size sponsors. InvestNext is the closest alternative, stronger on distribution waterfalls. Institutional platforms like Juniper Square run $30K+/year, overkill here.",
+      "Construction & development: Buildertrend, residential construction project management (scheduling, budgets, client portal, change orders) with unlimited users, starting around $499/month. Procore is the commercial-scale alternative at $20K+/year, built for much larger operations."
+    ],
     connections:["To be determined"],
     bridgeWorkflow:"Not yet determined",
     steps:[{text:"Revisited once the core aspects above are underway", state:"later"}],

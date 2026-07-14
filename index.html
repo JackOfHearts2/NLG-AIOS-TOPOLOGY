@@ -279,6 +279,7 @@
     border:1px solid var(--cyan);color:var(--cyan);background:none;font-family:var(--mono);font-size:10px;
     margin-left:6px;padding:0;line-height:1;cursor:pointer;vertical-align:middle;}
   .tool-info-btn:hover{background:var(--surface-2);}
+  .tool-info-btn.proposed{border-color:var(--violet);color:var(--violet);}
   .tool-popover{position:absolute;z-index:6;max-width:290px;margin-top:0;background:var(--surface);
     box-shadow:0 12px 34px rgba(0,0,0,.5);}
   .tool-inline-info{margin-top:10px;}
@@ -480,49 +481,76 @@ const TOOL_INFO = {
   "SuperProfile":"A tool that adds a link-in-bio page and automatic Instagram DM replies (AutoDM) on top of an Instagram Business account.",
   "Buffini Referral Maker CRM":"A real estate CRM from Buffini & Company built around referral-based selling. It tracks relationships and prompts regular follow-ups with past clients and contacts.",
   "Buildium":"Property management software. Holds leases, rent collection, maintenance requests, and owner reports for rental portfolios.",
-  "Stessa":"A free tool for rental property investors that tracks income, expenses, and returns per property, built for smaller portfolios."
+  "Stessa":"A free tool for rental property investors that tracks income, expenses, and returns per property, built for smaller portfolios.",
+  "Dotloop":"Real estate transaction management. E-signatures, document storage, and a compliance checklist for every deal, priced for small brokerages.",
+  "Quo":"A business phone system with a built-in AI voice agent that answers calls 24/7, texts, and transcribes and summarizes every call. Formerly OpenPhone.",
+  "Notion":"A flexible workspace for notes, databases, and dashboards. Already the planned knowledge base, so trackers and KPI views live where the docs already are.",
+  "SyndicationPro":"Real estate syndication software. An investor CRM, capital-raise workflows, and an investor portal, sized for small and mid-size sponsors.",
+  "Buildertrend":"Residential construction project management. Scheduling, budgets, client portals, and change orders, with unlimited users on a flat monthly price."
 };
 function toolLine(toolStr){
+  const proposed = toolStr.startsWith("Proposed:");
   let html = toolStr;
   for(const name in TOOL_INFO){
-    if(html.includes(name)) html = html.replace(name, `${name}<button class="tool-info-btn" data-tool="${name}" aria-label="What is ${name}?">i</button>`);
+    if(html.includes(name)) html = html.replace(name, `${name}<button class="tool-info-btn${proposed ? " proposed" : ""}" data-tool="${name}" aria-label="What is ${name}?">i</button>`);
   }
+  if(proposed) html = `<span style="color:var(--violet);font-weight:600">Proposed:</span>` + html.slice(9);
   return html;
 }
-let toolPopEl = null;
+let toolPopEl = null, toolPopTimer = null;
 function closeToolPopover(){
+  clearTimeout(toolPopTimer);
   if(toolPopEl){ toolPopEl.remove(); toolPopEl = null; }
+}
+function openToolPopover(btn){
+  const name = btn.dataset.tool;
+  if(toolPopEl && toolPopEl.dataset.tool === name) return;
+  closeToolPopover();
+  const inner = `<span class="q-label">${name}</span><span class="q-text">${TOOL_INFO[name]}</span>`;
+  if(window.matchMedia("(max-width:900px)").matches){
+    const box = document.createElement("div");
+    box.className = "question-box tool-inline-info";
+    box.dataset.tool = name;
+    box.innerHTML = inner;
+    btn.closest(".d-row").after(box);
+    toolPopEl = box;
+  } else {
+    const detail = document.getElementById("detail");
+    const pop = document.createElement("div");
+    pop.className = "question-box tool-popover";
+    pop.dataset.tool = name;
+    pop.innerHTML = inner;
+    detail.appendChild(pop);
+    const br = btn.getBoundingClientRect(), dr = detail.getBoundingClientRect();
+    pop.style.left = Math.max(12, Math.min(br.left - dr.left, detail.clientWidth - 310)) + "px";
+    pop.style.top = (br.bottom - dr.top + detail.scrollTop + 8) + "px";
+    toolPopEl = pop;
+  }
 }
 document.addEventListener("click", e=>{
   const btn = e.target.closest(".tool-info-btn");
   if(btn){
-    const name = btn.dataset.tool;
-    const wasOpen = toolPopEl && toolPopEl.dataset.tool === name;
-    closeToolPopover();
-    if(wasOpen) return;
-    const inner = `<span class="q-label">${name}</span><span class="q-text">${TOOL_INFO[name]}</span>`;
-    if(window.matchMedia("(max-width:900px)").matches){
-      const box = document.createElement("div");
-      box.className = "question-box tool-inline-info";
-      box.dataset.tool = name;
-      box.innerHTML = inner;
-      btn.closest(".d-row").after(box);
-      toolPopEl = box;
-    } else {
-      const detail = document.getElementById("detail");
-      const pop = document.createElement("div");
-      pop.className = "question-box tool-popover";
-      pop.dataset.tool = name;
-      pop.innerHTML = inner;
-      detail.appendChild(pop);
-      const br = btn.getBoundingClientRect(), dr = detail.getBoundingClientRect();
-      pop.style.left = Math.max(12, Math.min(br.left - dr.left, detail.clientWidth - 310)) + "px";
-      pop.style.top = (br.bottom - dr.top + detail.scrollTop + 8) + "px";
-      toolPopEl = pop;
-    }
+    const wasOpen = toolPopEl && toolPopEl.dataset.tool === btn.dataset.tool;
+    wasOpen ? closeToolPopover() : openToolPopover(btn);
     return;
   }
   if(toolPopEl && !e.target.closest(".tool-popover, .tool-inline-info")) closeToolPopover();
+});
+// Desktop: hovering the icon opens the blurb; it closes when the pointer leaves both icon and popover
+document.addEventListener("mouseover", e=>{
+  if(!window.matchMedia("(min-width:901px)").matches) return;
+  const btn = e.target.closest(".tool-info-btn");
+  if(btn){ clearTimeout(toolPopTimer); openToolPopover(btn); return; }
+  if(e.target.closest(".tool-popover")) clearTimeout(toolPopTimer);
+});
+document.addEventListener("mouseout", e=>{
+  if(!window.matchMedia("(min-width:901px)").matches || !toolPopEl) return;
+  const from = e.target.closest(".tool-info-btn, .tool-popover");
+  if(!from) return;
+  const to = e.relatedTarget && e.relatedTarget.closest ? e.relatedTarget.closest(".tool-info-btn, .tool-popover") : null;
+  if(to) return;
+  clearTimeout(toolPopTimer);
+  toolPopTimer = setTimeout(closeToolPopover, 250);
 });
 
 function connList(arr){ return `<ul class="conn-list">${arr.map(c=>`<li>${c}</li>`).join("")}</ul>`; }
