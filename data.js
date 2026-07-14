@@ -4,6 +4,7 @@ window.NLG_DATA = {
   name:"Claude, central hub",
   status:"research",
   tool:"Claude Team (planned, account not yet set up)",
+  cost:{ low:141, high:180, display:"$20/mo now (Claude Pro) → $141–180/mo built out", label:"Claude Team $100–125, Zapier Professional $20–30, Google Workspace Business Starter (3 seats) $21–25" },
   purpose:"Will coordinate every aspect of Project Dawn once live. Drafts content and communications, watches connected tools for triggers that matter, such as a lease renewal date, a new lead, or a month end close, and routes anything going out externally for approval before it sends. Still in the preliminary phase: nothing has launched yet.",
   connections:[
     "A paid Claude account on the Team plan. Pro was considered but its usage limits are too tight for a small business with multiple users",
@@ -23,17 +24,22 @@ window.NLG_DATA = {
 },
   aspects: [
   { id:"marketing", name:"Marketing AI", status:"research", angle:-90,
-    tool:"Meta Business Suite, SuperProfile, Claude Team",
-    purpose:"Turns property content into consistent social posts, DMs, and eventually paid ads reaching the five target audiences for a listing.",
+    tool:"Meta Business Suite, Canva, SuperProfile, Claude Team",
+    cost:{ low:42, high:53, label:"Canva Pro $13–18, SuperProfile Premium $29–35" },
+    purpose:"Turns property content into consistent social posts, DMs, and eventually paid ads reaching the five target audiences for a listing. Canva handles the visual side: posters, post graphics, and story templates, generated on brand and drafted by Claude before anything is published.",
+    options:[
+      "Canva Pro (one seat): listing flyers, social graphics, and branded templates. This is the anchor Canva subscription, and Brokerage, Client Experience, and capital-raising materials all draw from this same seat, no separate cost."
+    ],
     connections:[
       "Facebook Page switched to Professional/Business account, linked to Meta Business Suite",
       "Instagram Business profile linked to the same Facebook Page",
       "Meta Ads Manager account under Business Suite, with a payment method on file",
       "Ad account level access granted, separate from page admin access",
+      "Canva account (paid tier) with the property's brand kit, connected to Claude through Canva's MCP connector",
       "SuperProfile account connected to the Instagram Business profile for AutoDM and link-in-bio",
       "Claude Team project holding brand voice, property details, and the five-audience framework"
     ],
-    bridgeWorkflow:"Not yet determined",
+    bridgeWorkflow:"Canva connects to Claude through its MCP server: once the broker picks Canva from the connector picker, Claude can search, get a design, autofill templates, and export, the same pattern as any other MCP tool here. Meta and SuperProfile paths still to be determined.",
     steps:[
       {text:"Convert the Facebook Page from personal to Professional/Business account", state:"done"},
       {text:"Link the Page to Meta Business Suite", state:"done"},
@@ -43,13 +49,18 @@ window.NLG_DATA = {
       {text:"Create a SuperProfile account, go to AutoDM, connect the Instagram Business account", state:"later"},
       {text:"In AutoDM, choose Create Automation, pick a trigger such as an incoming DM or a post/reel comment, write the message, add a button or link if needed, then Confirm and Launch", state:"later"},
       {text:"Set up the SuperProfile link-in-bio page and add the link to the Instagram bio", state:"later"},
-      {text:"Property, brand voice, and audience instructions kept current in the Claude Team project", state:"now"}
+      {text:"Property, brand voice, and audience instructions kept current in the Claude Team project", state:"now"},
+      {text:"Create a Canva account on a paid tier (Canva Pro or Teams), the connector and brand features need a paid plan", state:"now"},
+      {text:"Build the property brand kit in Canva: logo, fonts, colors, and a few reusable post and poster templates", state:"now"},
+      {text:"In Claude, open Settings, Connectors, find Canva and connect the Canva account when prompted", state:"later"},
+      {text:"Test the loop end to end: Claude drafts a post, generates the Canva graphic on brand, broker approves, then it publishes", state:"later"}
     ],
-    note:"Only organic posting is live currently, every few days on Facebook and Instagram. Ads, AutoDM, and the link-in-bio page have not been set up yet. Ad launch is paused pending the property's Certificate of Use.",
+    note:"Only organic posting is live currently, every few days on Facebook and Instagram. Ads, AutoDM, Canva, and the link-in-bio page have not been set up yet. Ad launch is paused pending the property's Certificate of Use.",
     question:null },
 
   { id:"finance", name:"Finance AI", status:"research", angle:-54,
     tool:"QuickBooks Online",
+    cost:{ low:0, high:0, display:"Existing, no new cost (QuickBooks Online)" },
     purpose:"Keeps QuickBooks data flowing into a form Claude can use, so month-end close and reporting get drafted instead of assembled by hand. Also covers contractor payment tracking and 1099 filing: every agent is a 1099 independent contractor, so this is contractor payments, not traditional payroll.",
     options:[
       "QuickBooks Contractor Payments / 1099 Center: already included in the existing QuickBooks subscription, no new cost. The first path for contractor payment tracking and 1099 filing.",
@@ -74,7 +85,11 @@ window.NLG_DATA = {
 
   { id:"brokerage", name:"Brokerage AI", status:"research", angle:-18,
     tool:"Buffini Referral Maker CRM",
+    cost:{ low:0, high:0, display:"Existing, no new cost (Buffini Referral Maker CRM already in use)" },
     purpose:"Should eventually surface relationship touchpoints and property-related reminders sitting inside client records in Buffini. Also covers agent performance tracking (active agents, top producers) and sales/acquisition tracking across the brokerage.",
+    options:[
+      "Canva: CMA presentation visuals and listing flyers agents can self-serve from shared templates. Shares the Marketing AI Canva Pro seat, no added cost."
+    ],
     connections:[
       "Buffini Referral Maker CRM account (confirmed in use)",
       "Unconfirmed: no built-in AI agent, no confirmed API or export function found publicly",
@@ -92,6 +107,7 @@ window.NLG_DATA = {
 
   { id:"propmgmt", name:"Prop. mgmt AI", status:"research", angle:18,
     tool:"Buildium (confirmed in use)",
+    cost:{ low:400, high:400, label:"Buildium Premium $400" },
     purpose:"Intended to handle lease renewal reminders, maintenance follow-ups, and owner reports without manual tracking.",
     tandem:"Buildium holds the lease and maintenance dates and surfaces the trigger, Claude drafts the reminder, and it goes to the broker for approval before it sends to the tenant or owner.",
     connections:[
@@ -111,6 +127,7 @@ window.NLG_DATA = {
 
   { id:"hr", name:"HR AI", status:"proposed", angle:54,
     tool:"Proposed: Notion shared tracker",
+    cost:{ low:0, high:0, display:"$0/mo — no new tool needed", label:"Rides on existing QuickBooks 1099 filing plus Claude and Calendar reminders" },
     purpose:"Intended to handle onboarding checklists, license tracking and verification, and 1099 tax filing coordination across the agents, who are all independent contractors rather than W-2 employees.",
     options:[
       "No dedicated HR platform proposed yet. At this size, a shared onboarding checklist tracked in Notion or Drive, with Claude drafting reminders, likely covers the need without adding a paid HR system built for W-2 employees rather than independent contractor agents."
@@ -128,6 +145,7 @@ window.NLG_DATA = {
 
   { id:"legal", name:"Legal AI", status:"proposed", angle:90,
     tool:"Proposed: Dotloop",
+    cost:{ low:32, high:35, label:"Dotloop Premium $32–35" },
     purpose:"Intended to support compliance tracking and document review, tied to Fair Housing and NAR requirements.",
     options:[
       "Dotloop: transaction management with e-signatures and compliance tracking built in, priced for a small brokerage (around $32 to $35 per month), free tier available for low transaction volume.",
@@ -146,11 +164,13 @@ window.NLG_DATA = {
 
   { id:"clientexp", name:"Client exp. AI", status:"proposed", angle:126,
     tool:"Proposed: Quo (formerly OpenPhone)",
+    cost:{ low:25, high:26, label:"OpenPhone (Quo) Business $23 plus about $2–3 texting. Canva shares the Marketing AI seat, no added cost." },
     purpose:"Intended to handle inquiries from buyers, sellers, owners, and tenants outside business hours.",
     options:[
       "Quo (formerly OpenPhone): a business phone system with a built-in AI voice agent (Sona) that answers calls 24/7, texts, transcribes and summarizes every call, and tags conversations by topic. Priced per user, Business tier around $23/month, Scale tier (with the fuller AI feature set) around $35/month.",
       "A simple chat widget (Tidio or similar) on the future landing page, with Claude drafting the actual responses rather than the widget's own bot. Keeps Claude as the one thinking through every reply.",
-      "A dedicated real estate chatbot platform (Crescendo.ai or similar) that handles conversations independently, end to end. Faster to stand up, but becomes a second AI system running in parallel to Claude rather than feeding into it."
+      "A dedicated real estate chatbot platform (Crescendo.ai or similar) that handles conversations independently, end to end. Faster to stand up, but becomes a second AI system running in parallel to Claude rather than feeding into it.",
+      "Canva: branded client-facing documents such as welcome packets and closing gift cards. Shares the Marketing AI Canva Pro seat, no added cost."
     ],
     tandem:"If Quo is the pick, Sona would take the live call, then hand the transcript and summary to Claude, which drafts any follow-up message for approval before it reaches the client or gets logged in the CRM. If the widget route is chosen instead, Claude handles the conversation directly rather than a second AI system running alongside it.",
     connections:["To be determined"],
@@ -165,6 +185,7 @@ window.NLG_DATA = {
 
   { id:"executive", name:"Executive AI", status:"proposed", angle:162,
     tool:"Proposed: Notion dashboards",
+    cost:{ low:0, high:0, display:"Not yet scoped (Notion dashboards)" },
     purpose:"Intended as the one dashboard giving visibility across every aspect once they are running.",
     options:[
       "Notion dashboard views: since Notion is already the planned knowledge base in the broker's own technology stack, its newer dashboard feature can combine KPIs from other tools without adding a separate subscription.",
@@ -184,6 +205,7 @@ window.NLG_DATA = {
 
   { id:"investment", name:"Investment AI", status:"proposed", angle:198, priority:true,
     tool:"Proposed: Stessa",
+    cost:{ low:0, high:35, label:"Stessa, free tier or $20–35 Pro" },
     purpose:"Intended to analyze investment opportunities and assets under management: underwriting, cash flow analysis, cap rate and IRR calculations, risk scoring, comparable sales analysis, and acquisition recommendations.",
     options:[
       "Stessa: free, built for individual investors and smaller portfolios, proportionate to this scale. Tracks income, expenses, and returns per property.",
@@ -201,10 +223,12 @@ window.NLG_DATA = {
 
   { id:"other", name:"Future AI (2)", status:"not-started", angle:234,
     tool:"Proposed: SyndicationPro (capital raising), Buildertrend (construction)",
+    cost:{ low:0, high:0, display:"Not yet scoped — not started" },
     purpose:"Grouped placeholder for two aspects on the NLG-AIOS list that have not been started: Capital Raising AI and Construction & Development AI.",
     options:[
       "Capital raising: SyndicationPro, real estate syndication software with an investor CRM, capital-raise workflows, and an investor portal, sized for small and mid-size sponsors. InvestNext is the closest alternative, stronger on distribution waterfalls. Institutional platforms like Juniper Square run $30K+/year, overkill here.",
-      "Construction & development: Buildertrend, residential construction project management (scheduling, budgets, client portal, change orders) with unlimited users, starting around $499/month. Procore is the commercial-scale alternative at $20K+/year, built for much larger operations."
+      "Construction & development: Buildertrend, residential construction project management (scheduling, budgets, client portal, change orders) with unlimited users, starting around $499/month. Procore is the commercial-scale alternative at $20K+/year, built for much larger operations.",
+      "Canva: investor pitch decks and offering summary visuals for capital raising. Shares the Marketing AI Canva Pro seat, no added cost."
     ],
     connections:["To be determined"],
     bridgeWorkflow:"Not yet determined",

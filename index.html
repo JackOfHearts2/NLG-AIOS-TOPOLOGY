@@ -230,6 +230,9 @@
   .d-row{display:flex;gap:10px;font-family:var(--sans);font-size:13px;color:var(--text-2);margin-bottom:6px;letter-spacing:.02em;}
   .d-row b{color:var(--cyan);font-weight:600;min-width:110px;display:inline-block;}
   .progress-note{font-family:var(--sans);font-size:12px;color:var(--text-3);margin:0 0 6px;letter-spacing:.01em;}
+  .cost-row{margin-top:2px;}
+  .cost-row .cost-amt{color:var(--gold);font-weight:600;}
+  .cost-row .cost-detail{color:var(--text-3);}
   .d-section-label{font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
     margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
   .purpose{font-size:15px;line-height:1.7;color:var(--text);margin:0;}
@@ -480,6 +483,7 @@ const TOOL_INFO = {
   "Meta Business Suite":"Facebook and Instagram's free control panel for business accounts. One place to post, schedule, read messages, and run ads across both apps.",
   "SuperProfile":"A tool that adds a link-in-bio page and automatic Instagram DM replies (AutoDM) on top of an Instagram Business account.",
   "Buffini Referral Maker CRM":"A real estate CRM from Buffini & Company built around referral-based selling. It tracks relationships and prompts regular follow-ups with past clients and contacts.",
+  "Canva":"A drag-and-drop design tool for graphics, posters, and social posts. Its native Claude connector lets Claude generate on-brand designs from a prompt, using your saved brand kit.",
   "Buildium":"Property management software. Holds leases, rent collection, maintenance requests, and owner reports for rental portfolios.",
   "Stessa":"A free tool for rental property investors that tracks income, expenses, and returns per property, built for smaller portfolios.",
   "Dotloop":"Real estate transaction management. E-signatures, document storage, and a compliance checklist for every deal, priced for small brokerages.",
@@ -574,6 +578,19 @@ function bridgeRow(v){
   const undecided = v === "Not yet determined";
   return `<div class="d-row" style="margin-top:14px${undecided ? ";color:var(--text-3);font-style:italic" : ""}"><b>Bridge Workflow</b>${v}</div>`;
 }
+// One compact cost line directly under the tool name; covers all of a node's tools in a single block.
+function costRow(c){
+  if(!c) return "";
+  const head = c.display ? c.display : `$${c.low}–${c.high}/mo`;
+  return `<div class="d-row cost-row"><b>Est. cost</b><span><span class="cost-amt">${head}</span>${c.label ? ` <span class="cost-detail">· ${c.label}</span>` : ""}</span></div>`;
+}
+// Total proposed new monthly spend, summed from each node's cost so it stays accurate if a figure changes.
+// Excludes QuickBooks (existing) and Meta ad spend (existing decision), neither of which carries a cost field.
+function proposedMonthly(){
+  let low=0, high=0;
+  [HUB, ...ASPECTS].forEach(x=>{ if(x.cost){ low += x.cost.low||0; high += x.cost.high||0; } });
+  return {low, high};
+}
 function joinNames(names){
   if(names.length <= 1) return names.join("");
   if(names.length === 2) return names[0]+" and "+names[1];
@@ -621,6 +638,7 @@ function hubBodyHTML(){
     <span class="d-badge" style="color:${COLOR[HUB.status]};border-color:${COLOR[HUB.status]}">${LABEL[HUB.status]}</span>
     <h2 class="d-title">${HUB.name}</h2>
     <div class="d-row"><b>Tool</b><span>${toolLine(HUB.tool)}</span></div>
+    ${costRow(HUB.cost)}
     <p class="d-section-label">Purpose</p>
     <p class="purpose">${HUB.purpose}</p>
     <p class="d-section-label">Connections needed</p>
@@ -639,6 +657,7 @@ function aspectBodyHTML(a){
     ${a.priority ? `<span class="d-badge" style="color:var(--gold);border-color:var(--gold);margin-left:8px">&#9733; Priority</span>` : ""}
     <h2 class="d-title">${a.name}</h2>
     <div class="d-row"><b>Tool</b><span>${toolLine(a.tool)}</span></div>
+    ${costRow(a.cost)}
     <p class="d-section-label">Purpose</p>
     <p class="purpose">${a.purpose}</p>
     ${optionsList(a.options)}
@@ -787,6 +806,8 @@ function openAllMilestones(){
     <h2 class="d-title">All milestones</h2>
     <div class="d-row"><b>Overall</b>${overallPct}% &middot; ${overallDone}/${overallTotal} steps done</div>
     <p class="progress-note">${overallDone} of ${overallTotal} steps marked done, across every aspect and Claude's own setup.</p>
+    <div class="d-row"><b>Proposed spend</b><span><span class="cost-amt" style="color:var(--gold);font-weight:600">$${proposedMonthly().low}–${proposedMonthly().high}/mo</span> proposed, once fully built out</span></div>
+    <p class="progress-note">Excludes QuickBooks (existing) and Meta ad spend. Canva is one shared seat, counted once.</p>
     <p class="d-section-label">Milestones</p>
     <ul class="conn-list">${rows.map(r=>`<li style="cursor:pointer" onclick="openMilestone(${r.idx})">${r.label} &middot; ${r.pct}% (${r.done}/${r.total})</li>`).join("")}</ul>
   `;
