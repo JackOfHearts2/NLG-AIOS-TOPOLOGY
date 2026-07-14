@@ -4,7 +4,7 @@ window.NLG_DATA = {
   name:"Claude, central hub",
   status:"research",
   tool:"Claude Team (planned, account not yet set up)",
-  cost:{ low:141, high:180, display:"$20/mo now (Claude Pro) → $141–180/mo built out", label:"Claude Team $100–125, Zapier Professional $20–30, Google Workspace Business Starter (3 seats) $21–25" },
+  cost:{ low:141, high:180, display:"$141–180/mo, all new — New Level has no Claude account yet", label:"Claude Team $100–125, Zapier Professional $20–30, Google Workspace Business Starter (3 seats) $21–25" },
   purpose:"Will coordinate every aspect of Project Dawn once live. Drafts content and communications, watches connected tools for triggers that matter, such as a lease renewal date, a new lead, or a month end close, and routes anything going out externally for approval before it sends. Still in the preliminary phase: nothing has launched yet.",
   connections:[
     "A paid Claude account on the Team plan. Pro was considered but its usage limits are too tight for a small business with multiple users",
@@ -14,8 +14,8 @@ window.NLG_DATA = {
   ],
   bridgeWorkflow:"Native connectors first; Zapier as the go-between where a tool supports it",
   steps:[
-    {text:"Plan chosen: Claude Team. Pro's usage limits are already tight in single-person use, so it won't hold up for a multi-user business", state:"done"},
-    {text:"Set up the Claude Team account, then turn on the first native connectors: Gmail, Google Drive, Dropbox, Outlook, OneDrive", state:"now"},
+    {text:"Plan chosen: Claude Team. New Level has no Claude account yet, and Pro's per-person usage limits are too tight for a business with multiple users, so New Level starts fresh on Team", state:"done"},
+    {text:"Set up New Level's Claude Team account, then turn on the first native connectors: Gmail, Google Drive, Dropbox, Outlook, OneDrive", state:"now"},
     {text:"Add Zapier as a bridge once a tool without a direct connector needs to reach Claude", state:"later"},
     {text:"Keep this topology updated as each spoke moves from placeholder to live", state:"now"}
   ],
