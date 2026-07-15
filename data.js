@@ -24,11 +24,15 @@ window.NLG_DATA = {
 },
   aspects: [
   { id:"marketing", name:"Marketing AI", status:"research", angle:-90,
-    tool:"Meta Business Suite, Canva, SuperProfile, Claude Team",
+    tool:"Meta Business Suite, Canva, SuperProfile, Claude Team, Google Ads (future)",
     cost:{ low:42, high:53, label:"Canva Pro $13–18, SuperProfile Premium $29–35" },
-    purpose:"Turns property content into consistent social posts, DMs, and eventually paid ads reaching the five target audiences for a listing. Canva handles the visual side: posters, post graphics, and story templates, generated on brand and drafted by Claude before anything is published.",
+    purpose:"Turns property content into a steady, on-brand marketing presence across social posts, DMs, and eventually paid ads, reaching the five target audiences for a listing. Each tool owns a piece: Meta Business Suite runs the organic Facebook and Instagram posting and, later, paid ads; Canva produces the visuals; SuperProfile handles automated DMs and the link-in-bio; and the Claude Team project holds the brand voice, property details, and five-audience framework that ties it all together.",
     options:[
-      "Canva Pro (one seat): listing flyers, social graphics, and branded templates. This is the anchor Canva subscription, and Brokerage, Client Experience, and capital-raising materials all draw from this same seat, no separate cost."
+      "Meta Business Suite (in use): the free control panel for the Facebook Page and Instagram Business profile. Runs organic posting today and paid ads later through Meta Ads Manager. The confirmed backbone of this spoke, not just a candidate.",
+      "Canva Pro (one seat): listing flyers, social graphics, and branded templates. Recommended and being set up. This is the anchor Canva subscription, and Brokerage, Client Experience, and capital-raising materials all draw from this same seat, no separate cost.",
+      "SuperProfile Premium: automated Instagram DMs (AutoDM) and a link-in-bio page, so first-touch replies and lead routing happen without anyone watching the inbox. Recommended, not yet set up.",
+      "Claude Team: the brain of the spoke. Drafts every post, caption, and DM, keeps the five-audience framework and brand voice current, and routes anything outbound for approval before it publishes.",
+      "Google Ads (future mention, not yet recommended): paid search and display ad space is a likely next expansion once organic posting and Meta ads are proven. It supplements the Meta ad channel rather than replacing it; other ad formats and channels can follow after that."
     ],
     connections:[
       "Facebook Page switched to Professional/Business account, linked to Meta Business Suite",
@@ -53,7 +57,8 @@ window.NLG_DATA = {
       {text:"Create a Canva account on a paid tier (Canva Pro or Teams), the connector and brand features need a paid plan", state:"now"},
       {text:"Build the property brand kit in Canva: logo, fonts, colors, and a few reusable post and poster templates", state:"now"},
       {text:"In Claude, open Settings, Connectors, find Canva and connect the Canva account when prompted", state:"later"},
-      {text:"Test the loop end to end: Claude drafts a post, generates the Canva graphic on brand, broker approves, then it publishes", state:"later"}
+      {text:"Test the loop end to end: Claude drafts a post, generates the Canva graphic on brand, broker approves, then it publishes", state:"later"},
+      {text:"Once organic posting and Meta ads are proven, evaluate Google Ads as an added paid channel, with other ad formats considered after that", state:"later"}
     ],
     note:"Only organic posting is live currently, every few days on Facebook and Instagram. Ads, AutoDM, Canva, and the link-in-bio page have not been set up yet. Ad launch is paused pending the property's Certificate of Use.",
     question:null },
