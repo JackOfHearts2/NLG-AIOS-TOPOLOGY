@@ -68,9 +68,12 @@ window.NLG_DATA = {
     cost:{ low:0, high:0, display:"Existing, no new cost (QuickBooks Online)" },
     purpose:"Keeps QuickBooks data flowing into a form Claude can use, so month-end close and reporting get drafted instead of assembled by hand. Also covers contractor payment tracking and 1099 filing: every agent is a 1099 independent contractor, so this is contractor payments, not traditional payroll.",
     options:[
+      "QuickBooks Online (in use): the confirmed system of record for all books. Everything else layers on top of it; nothing replaces it.",
+      "A layering tool, one to be chosen (Booke AI, Finlens, or Dext): sits between QuickBooks and Claude to categorize transactions, capture receipts, or build GAAP schedules, then feeds clean numbers to Claude. Recommended once the specific need is pinned down; which one depends on that need.",
       "QuickBooks Contractor Payments / 1099 Center: already included in the existing QuickBooks subscription, no new cost. The first path for contractor payment tracking and 1099 filing.",
-      "Gusto, Contractor Only plan: $35/month plus $6 per contractor. The alternative if QuickBooks' built-in contractor tooling falls short."
+      "Gusto, Contractor Only plan: a supplement to QuickBooks' contractor tooling at $35/month plus $6 per contractor. Just a mention for now, worth it only if QuickBooks' built-in 1099 handling falls short."
     ],
+    tandem:"QuickBooks stays the system of record. A layering tool reads its data through the QuickBooks API and hands Claude clean, categorized numbers; Claude then drafts the month-end close, the reports, and the 1099 filings, and the broker approves before anything is finalized.",
     connections:[
       "QuickBooks Online account (already in use, confirmed system of record)",
       "QuickBooks Contractor Payments / 1099 Center for contractor payment tracking and 1099 filing",
@@ -83,7 +86,8 @@ window.NLG_DATA = {
       {text:"Pick one layering tool based on the actual need: categorization, receipts, or GAAP schedules", state:"later"},
       {text:"Connection to QuickBooks authorized for that tool, within QuickBooks itself", state:"later"},
       {text:"Claude given access to that tool's output, directly or through Zapier", state:"later"},
-      {text:"Piloted on one month's close before relying on it", state:"later"}
+      {text:"Piloted on one month's close before relying on it", state:"later"},
+      {text:"Draft-and-approve loop set: Claude drafts the close, reports, and 1099 filings, the broker reviews and approves before they are finalized", state:"later"}
     ],
     note:null,
     question:"Which layering tool fits best: Booke AI, Finlens, or Dext, or is a different approach preferred?" },
@@ -93,8 +97,11 @@ window.NLG_DATA = {
     cost:{ low:0, high:0, display:"Existing, no new cost (Buffini Referral Maker CRM already in use)" },
     purpose:"Should eventually surface relationship touchpoints and property-related reminders sitting inside client records in Buffini. Also covers agent performance tracking (active agents, top producers) and sales/acquisition tracking across the brokerage.",
     options:[
-      "Canva: CMA presentation visuals and listing flyers agents can self-serve from shared templates. Shares the Marketing AI Canva Pro seat, no added cost."
+      "Buffini Referral Maker CRM (in use): the confirmed CRM holding client records, relationship touchpoints, and reminders. The open question is access for Claude, not whether to adopt it.",
+      "A source for agent-performance and sales data, to be confirmed: whatever system holds active-agent and top-producer numbers, so Claude can surface them alongside the CRM reminders.",
+      "Canva: CMA presentation visuals and listing flyers agents can self-serve from shared templates. Recommended, shares the Marketing AI Canva Pro seat, no added cost."
     ],
+    tandem:"Buffini holds the relationship and reminder data. Once a way in is confirmed, Claude reads it, drafts the touchpoint or reminder, and routes it to the agent or broker for approval before it sends. Agent-performance figures feed the same detect, draft, approve loop once a source is confirmed.",
     connections:[
       "Buffini Referral Maker CRM account (confirmed in use)",
       "Unconfirmed: no built-in AI agent, no confirmed API or export function found publicly",
@@ -113,7 +120,12 @@ window.NLG_DATA = {
   { id:"propmgmt", name:"Prop. mgmt AI", status:"research", angle:18,
     tool:"Buildium (confirmed in use)",
     cost:{ low:400, high:400, label:"Buildium Premium $400" },
-    purpose:"Intended to handle lease renewal reminders, maintenance follow-ups, and owner reports without manual tracking.",
+    purpose:"Intended to handle lease renewal reminders, maintenance follow-ups, and owner reports without manual tracking. Buildium is the system of record for leases and maintenance; Claude reads from it and drafts the outbound reminders and reports.",
+    options:[
+      "Buildium (in use): the confirmed platform holding leases, rent, maintenance requests, and owner reports. AppFolio was considered but lost out.",
+      "Buildium Premium ($400/mo): the tier that unlocks Buildium's API for a direct Claude connection. The open question is whether it is worth it versus a lighter bridge such as scheduled exports or reading Buildium's notification emails.",
+      "Canva: could supplement owner reports and tenant notices with branded layouts, sharing the Marketing AI seat at no added cost. A mention, not yet recommended."
+    ],
     tandem:"Buildium holds the lease and maintenance dates and surfaces the trigger, Claude drafts the reminder, and it goes to the broker for approval before it sends to the tenant or owner.",
     connections:[
       "Buildium account (confirmed in use)",
@@ -135,10 +147,16 @@ window.NLG_DATA = {
     cost:{ low:0, high:0, display:"$0/mo — no new tool needed", label:"Rides on existing QuickBooks 1099 filing plus Claude and Calendar reminders" },
     purpose:"Intended to handle onboarding checklists, license tracking and verification, and 1099 tax filing coordination across the agents, who are all independent contractors rather than W-2 employees.",
     options:[
-      "No dedicated HR platform proposed yet. At this size, a shared onboarding checklist tracked in Notion or Drive, with Claude drafting reminders, likely covers the need without adding a paid HR system built for W-2 employees rather than independent contractor agents."
+      "Shared checklist in Notion or Google Drive (recommended): the lightweight tracker itself, holding onboarding, license, and 1099 status per agent. No new cost if Notion or Drive is already in the stack.",
+      "Claude plus Google Calendar: drafts the nudges and reminders, using Calendar dates for license renewals and 1099 deadlines.",
+      "No dedicated HR platform: a paid HR system is built for W-2 employees, not 1099 independent contractor agents, so it would be overkill. Considered and set aside."
     ],
-    tandem:"A shared checklist would hold the actual status per agent, and Claude would draft the nudge when something is overdue, rather than a dedicated system running its own automation.",
-    connections:["To be determined"],
+    tandem:"A shared checklist holds the actual status per agent, Google Calendar holds the dates, and Claude drafts the nudge when something is overdue, rather than a dedicated system running its own automation.",
+    connections:[
+      "A shared checklist location (Notion or Google Drive)",
+      "Google Calendar for license-renewal and 1099 dates",
+      "Claude Team access to both, to read status and draft reminders for approval"
+    ],
     bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Current onboarding and recruiting process reviewed", state:"now"},
@@ -157,7 +175,11 @@ window.NLG_DATA = {
       "SkySlope: stronger compliance auditing and broker-level oversight, with an AI feature (SmartAudit) that flags missing or incomplete documents automatically, but priced for larger brokerages (typically $340 or more per month), likely more than this size needs right now."
     ],
     tandem:"Whichever platform holds the compliance checklist would flag a gap, and Claude would draft the follow-up request to the agent, with the broker approving before anything is sent or filed.",
-    connections:["To be determined"],
+    connections:[
+      "The chosen platform's compliance checklist as the source of truth (Dotloop or SkySlope)",
+      "A path for Claude to read gaps: the platform's API, a data export, or reading its notification emails through Gmail",
+      "Claude Team access to draft the follow-up request, with the broker approving before anything is sent or filed"
+    ],
     bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Current compliance and document review process mapped", state:"now"},
@@ -178,7 +200,11 @@ window.NLG_DATA = {
       "Canva: branded client-facing documents such as welcome packets and closing gift cards. Shares the Marketing AI Canva Pro seat, no added cost."
     ],
     tandem:"If Quo is the pick, Sona would take the live call, then hand the transcript and summary to Claude, which drafts any follow-up message for approval before it reaches the client or gets logged in the CRM. If the widget route is chosen instead, Claude handles the conversation directly rather than a second AI system running alongside it.",
-    connections:["To be determined"],
+    connections:[
+      "The chosen channel: Quo's phone line and AI voice agent, a web chat widget, or a standalone platform",
+      "Call transcripts and summaries routed to Claude after each conversation",
+      "The CRM (Buffini) for logging follow-ups, and Claude Team access to draft them for approval"
+    ],
     bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Current inquiry handling process reviewed", state:"now"},
@@ -213,10 +239,15 @@ window.NLG_DATA = {
     cost:{ low:0, high:35, label:"Stessa, free tier or $20–35 Pro" },
     purpose:"Intended to analyze investment opportunities and assets under management: underwriting, cash flow analysis, cap rate and IRR calculations, risk scoring, comparable sales analysis, and acquisition recommendations.",
     options:[
-      "Stessa: free, built for individual investors and smaller portfolios, proportionate to this scale. Tracks income, expenses, and returns per property.",
-      "Institutional platforms (Agora, ARGUS Enterprise, RealPage AIM): built for much larger funds and portfolios, would be overkill here."
+      "Stessa (recommended to start): free, built for individual investors and smaller portfolios, proportionate to this scale. Tracks income, expenses, and returns per property, then Claude layers underwriting, cap-rate, and IRR analysis on top.",
+      "Institutional platforms (Agora, ARGUS Enterprise, RealPage AIM): built for much larger funds and portfolios, would be overkill here. A mention, not recommended at this size."
     ],
-    connections:["To be determined"],
+    tandem:"Stessa holds the per-property income, expense, and return data; Claude reads it to run underwriting, cash-flow, cap-rate and IRR math, risk scoring, and comparable-sales analysis, then drafts an acquisition recommendation for the broker to weigh.",
+    connections:[
+      "A Stessa account holding the portfolio's income, expense, and performance data",
+      "A path for Claude to reach that data: Stessa's own sharing or export, with Zapier as a fallback bridge",
+      "Claude Team access to run the analysis and draft recommendations for review"
+    ],
     bridgeWorkflow:"Not yet determined",
     steps:[
       {text:"Confirm actual portfolio size and what needs tracking", state:"later"},
@@ -235,7 +266,8 @@ window.NLG_DATA = {
       "Construction & development: Buildertrend, residential construction project management (scheduling, budgets, client portal, change orders) with unlimited users, starting around $499/month. Procore is the commercial-scale alternative at $20K+/year, built for much larger operations.",
       "Canva: investor pitch decks and offering summary visuals for capital raising. Shares the Marketing AI Canva Pro seat, no added cost."
     ],
-    connections:["To be determined"],
+    tandem:"Each will follow the same detect, draft, approve, send pattern as the live spokes once started: the platform holds the data, Claude drafts the outreach or report, and the broker approves before anything goes out.",
+    connections:["To be determined once each aspect is started"],
     bridgeWorkflow:"Not yet determined",
     steps:[{text:"Revisited once the core aspects above are underway", state:"later"}],
     note:"Grouped only to keep the map readable. Each is still its own aspect on the full roadmap. Investment AI was pulled out of this group into its own node.",
