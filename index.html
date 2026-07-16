@@ -237,6 +237,24 @@
   .cost-row{margin-top:2px;}
   .cost-row .cost-amt{color:var(--gold);font-weight:600;}
   .cost-row .cost-detail{color:var(--text-3);}
+  /* Feedback box: deliberately prominent, on every panel */
+  .feedback-box{margin-top:28px;background:var(--surface-2);border:1px solid var(--gold-dim);border-radius:10px;padding:16px 18px;}
+  .feedback-box .fb-label{font-family:var(--sans);font-weight:600;font-size:14px;color:var(--gold);margin:0 0 6px;}
+  .feedback-box .fb-prompt{font-family:var(--sans);font-size:13px;color:var(--text-2);line-height:1.55;margin:0 0 12px;}
+  .feedback-box .fb-input{width:100%;min-height:74px;background:var(--surface);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:10px 12px;border-radius:6px;resize:vertical;}
+  .feedback-box .fb-input:focus{outline:none;border-color:var(--gold-dim);}
+  .feedback-box .fb-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;}
+  .feedback-box .fb-send{margin-top:10px;background:var(--gold);color:#0A0D10;border:none;border-radius:6px;
+    font-family:var(--sans);font-weight:600;font-size:13px;padding:9px 18px;cursor:pointer;}
+  .feedback-box .fb-send:hover{filter:brightness(1.08);}
+  /* Private admin overlay (#admin) */
+  #adminOverlay{position:fixed;inset:0;z-index:20;background:rgba(5,6,7,.88);overflow-y:auto;padding:40px 20px;}
+  #adminOverlay .adm-panel{max-width:760px;margin:0 auto;background:var(--surface);border:1px solid var(--gold-dim);border-radius:12px;padding:24px 28px;}
+  #adminOverlay .adm-item{border-bottom:1px solid var(--border);padding:12px 0;}
+  #adminOverlay .adm-item:last-child{border-bottom:none;}
+  #adminOverlay .adm-meta{font-family:var(--mono);font-size:11px;color:var(--cyan);margin-bottom:4px;}
+  #adminOverlay .adm-text{font-size:14px;color:var(--text);line-height:1.5;white-space:pre-wrap;}
   .d-section-label{font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
     margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
   .purpose{font-size:15px;line-height:1.7;color:var(--text);margin:0;}
@@ -601,6 +619,57 @@ function joinNames(names){
   if(names.length === 2) return names[0]+" and "+names[1];
   return names.slice(0,-1).join(", ")+", and "+names[names.length-1];
 }
+// ---- Viewer feedback: stored in Firebase under /feedback, read via the #admin view ----
+function feedbackBox(section){
+  const s = String(section).replace(/'/g, "\\'");
+  return `<div class="feedback-box">
+    <p class="fb-label">Have thoughts on this section?</p>
+    <p class="fb-prompt">See something missing, wrong, or unclear? Know a tool we should consider, or have a question about how this piece works? Tell us here — your input directly shapes what gets built.</p>
+    <textarea class="fb-input" placeholder="Type your feedback or a question…"></textarea>
+    <input type="text" class="fb-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button class="fb-send" onclick="submitFeedback('${s}', this)">Send feedback</button>
+  </div>`;
+}
+function submitFeedback(section, btn){
+  const box = btn.closest(".feedback-box");
+  const ta = box.querySelector(".fb-input");
+  const hp = box.querySelector(".fb-hp");
+  if(hp && hp.value) return;                         // honeypot: silently drop bots
+  const text = ta.value.trim();
+  if(!text){ ta.focus(); return; }
+  btn.disabled = true; btn.textContent = "Sending…";
+  db.ref("feedback").push({ section, text, ts: Date.now(), ua: (navigator.userAgent||"").slice(0,140) })
+    .then(()=>{
+      box.innerHTML = `<p class="fb-label">Thank you</p><p class="fb-prompt">Your feedback was sent — it goes straight to the team. Add more from any section anytime.</p>`;
+    })
+    .catch(()=>{
+      btn.disabled = false; btn.textContent = "Send feedback";
+      let e = box.querySelector(".fb-err");
+      if(!e){ e = document.createElement("p"); e.className = "fb-prompt fb-err"; e.style.color = "var(--amber)"; box.appendChild(e); }
+      e.textContent = "Couldn't send just now — please try again in a moment.";
+    });
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m])); }
+// Private admin view: open the site with #admin to read all feedback. Obscurity, not auth —
+// see note; real privacy comes with the later email/auth upgrade.
+function showAdmin(){
+  if(document.getElementById("adminOverlay")) return;
+  db.ref("feedback").once("value", snap=>{
+    const all = [];
+    snap.forEach(ch=>{ const v = ch.val(); if(v) all.push(v); });
+    all.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    const rows = all.length ? all.map(f=>`<div class="adm-item">
+      <div class="adm-meta">${escapeHtml(f.section||"?")} · ${f.ts ? new Date(f.ts).toLocaleString() : ""}</div>
+      <div class="adm-text">${escapeHtml(f.text||"")}</div>
+    </div>`).join("") : `<p class="fb-prompt">No feedback yet.</p>`;
+    const el = document.createElement("div");
+    el.id = "adminOverlay";
+    el.innerHTML = `<div class="adm-panel">
+      <button class="back" onclick="document.getElementById('adminOverlay').remove(); history.replaceState(null,'',location.pathname);">&#8592; close</button>
+      <h2 class="d-title">Feedback (${all.length})</h2>${rows}</div>`;
+    document.body.appendChild(el);
+  });
+}
 function optionsList(arr){ return arr ? `<p class="d-section-label">Candidate tools</p><ul class="candidates">${arr.map(o=>`<li>${o}</li>`).join("")}</ul>` : ""; }
 function tandemBox(t){ return t ? `<p class="d-section-label">How they would work in tandem</p><div class="tandem">${t}</div>` : ""; }
 
@@ -629,7 +698,8 @@ function openInfo(){
     <p class="d-section-label">Reading the progress numbers</p>
     <p class="purpose">The overall bar at the top includes every aspect. The milestone breakdown only covers the aspects currently being actively tracked as priorities, not yet-started catch-all groupings like Future AI.</p>
     <p class="d-section-label">Feedback</p>
-    <p class="purpose">If something here does not match how a process actually works day to day, or a tool is missing, that is exactly the kind of correction this map needs.</p>
+    <p class="purpose">If something here does not match how a process actually works day to day, or a tool is missing, that is exactly the kind of correction this map needs. Use the box below, or the feedback box on any hub, spoke, or milestone panel.</p>
+    ${feedbackBox("general")}
   `;
   document.getElementById("detail").classList.remove("centered","from-left");
   document.getElementById("detail").classList.add("open");
@@ -653,6 +723,7 @@ function hubBodyHTML(){
     ${stepList(HUB.steps, "__hub__")}
     ${HUB.note ? `<p class="d-section-label">Note</p><div class="note">${HUB.note}</div>` : ""}
     ${questionBox(HUB.question)}
+    ${feedbackBox("__hub__")}
   `;
 }
 
@@ -674,6 +745,7 @@ function aspectBodyHTML(a){
     ${stepList(a.steps, a.id)}
     ${a.note ? `<p class="d-section-label">Note</p><div class="note">${a.note}</div>` : ""}
     ${questionBox(a.question)}
+    ${feedbackBox(a.id)}
   `;
 }
 
@@ -787,6 +859,7 @@ function openMilestone(idx){
       <p class="d-section-label" style="cursor:pointer" onclick="${s.action}">${s.name} &middot; ${s.statusLabel}</p>
       ${stepList(s.steps, s.id)}
     `).join("")}
+    ${feedbackBox("milestone:"+m.label)}
   `;
   document.getElementById("detail").classList.remove("from-left");
   document.getElementById("detail").classList.add("centered");
@@ -815,6 +888,7 @@ function openAllMilestones(){
     <p class="progress-note">Excludes QuickBooks (existing) and Meta ad spend. Canva is one shared seat, counted once.</p>
     <p class="d-section-label">Milestones</p>
     <ul class="conn-list">${rows.map(r=>`<li style="cursor:pointer" onclick="openMilestone(${r.idx})">${r.label} &middot; ${r.pct}% (${r.done}/${r.total})</li>`).join("")}</ul>
+    ${feedbackBox("overview")}
   `;
   document.getElementById("detail").classList.remove("from-left");
   document.getElementById("detail").classList.add("centered");
@@ -1072,6 +1146,10 @@ db.ref("overrides").on("value", snapshot=>{
   renderMobileList();
   refreshOpenPanel();
 });
+
+// Private admin view: open the site with #admin to read all submitted feedback.
+window.addEventListener("hashchange", ()=>{ if(location.hash==="#admin") showAdmin(); });
+if(location.hash==="#admin") showAdmin();
 </script>
 </body>
 </html>
