@@ -24,14 +24,14 @@ window.NLG_DATA = {
 },
   aspects: [
   { id:"marketing", name:"Marketing AI", status:"research", angle:-90,
-    tool:"Meta Business Suite, Canva, SuperProfile, Claude Team, Google Ads (future)",
-    cost:{ low:42, high:53, label:"Canva Pro $13–18, SuperProfile Premium $29–35" },
-    purpose:"Turns property content into a steady, on-brand marketing presence across social posts, DMs, and eventually paid ads, reaching the five target audiences for a listing. Each tool owns a piece: Meta Business Suite runs the organic Facebook and Instagram posting and, later, paid ads; Canva produces the visuals; SuperProfile handles automated DMs and the link-in-bio; and the Claude Team project holds the brand voice, property details, and five-audience framework that ties it all together.",
+    tool:"Meta Business Suite, Canva, Claude Team, SuperProfile (if needed), Google Ads (future)",
+    cost:{ low:13, high:18, label:"Canva Pro $13–18. SuperProfile Premium ($29–35) added only if DM and inquiry volume demands it." },
+    purpose:"Turns property content into a steady, on-brand marketing presence across social posts, DMs, and eventually paid ads, reaching the five target audiences for a listing. Each tool owns a piece: Meta Business Suite runs the organic Facebook and Instagram posting and, later, paid ads; Canva produces the visuals; and the Claude Team project holds the brand voice, property details, and five-audience framework that ties it all together. SuperProfile is held in reserve for automated DMs and a link-in-bio, to add only if inbound DMs and inquiries outgrow handling them by hand.",
     options:[
       "Meta Business Suite (in use): the free control panel for the Facebook Page and Instagram Business profile. Runs organic posting today and paid ads later through Meta Ads Manager. The confirmed backbone of this spoke, not just a candidate.",
       "Canva Pro (one seat): listing flyers, social graphics, and branded templates. Recommended and being set up. This is the anchor Canva subscription, and Brokerage, Client Experience, and capital-raising materials all draw from this same seat, no separate cost.",
-      "SuperProfile Premium: automated Instagram DMs (AutoDM) and a link-in-bio page, so first-touch replies and lead routing happen without anyone watching the inbox. Recommended, not yet set up.",
       "Claude Team: the brain of the spoke. Drafts every post, caption, and DM, keeps the five-audience framework and brand voice current, and routes anything outbound for approval before it publishes.",
+      "SuperProfile Premium (held in reserve, only if needed): automated Instagram DMs (AutoDM) and a link-in-bio page, so first-touch replies and lead routing happen without anyone watching the inbox. Added only if DM and inquiry volume grows past what the team can handle by hand, in keeping with the start-small approach.",
       "Google Ads (future mention, not yet recommended): paid search and display ad space is a likely next expansion once organic posting and Meta ads are proven. It supplements the Meta ad channel rather than replacing it; other ad formats and channels can follow after that."
     ],
     connections:[
@@ -40,7 +40,7 @@ window.NLG_DATA = {
       "Meta Ads Manager account under Business Suite, with a payment method on file",
       "Ad account level access granted, separate from page admin access",
       "Canva account (paid tier) with the property's brand kit, connected to Claude through Canva's MCP connector",
-      "SuperProfile account connected to the Instagram Business profile for AutoDM and link-in-bio",
+      "SuperProfile account connected to the Instagram Business profile for AutoDM and link-in-bio, only if and when DM volume warrants it",
       "Claude Team project holding brand voice, property details, and the five-audience framework"
     ],
     bridgeWorkflow:"Canva connects to Claude through its MCP server: once the broker picks Canva from the connector picker, Claude can search, get a design, autofill templates, and export, the same pattern as any other MCP tool here. Meta and SuperProfile paths still to be determined.",
@@ -50,7 +50,7 @@ window.NLG_DATA = {
       {text:"Switch Instagram to a Business profile, connect it to the same Page", state:"done"},
       {text:"Create Meta Ads Manager under the same Business Suite account", state:"now"},
       {text:"Ad account level user access granted, payment method added", state:"now"},
-      {text:"Create a SuperProfile account, go to AutoDM, connect the Instagram Business account", state:"later"},
+      {text:"Only if DMs and inquiries outgrow handling them by hand: create a SuperProfile account, go to AutoDM, connect the Instagram Business account", state:"later"},
       {text:"In AutoDM, choose Create Automation, pick a trigger such as an incoming DM or a post/reel comment, write the message, add a button or link if needed, then Confirm and Launch", state:"later"},
       {text:"Set up the SuperProfile link-in-bio page and add the link to the Instagram bio", state:"later"},
       {text:"Property, brand voice, and audience instructions kept current in the Claude Team project", state:"now"},
@@ -60,7 +60,7 @@ window.NLG_DATA = {
       {text:"Test the loop end to end: Claude drafts a post, generates the Canva graphic on brand, broker approves, then it publishes", state:"later"},
       {text:"Once organic posting and Meta ads are proven, evaluate Google Ads as an added paid channel, with other ad formats considered after that", state:"later"}
     ],
-    note:"Only organic posting is live currently, every few days on Facebook and Instagram. Ads, AutoDM, Canva, and the link-in-bio page have not been set up yet. Ad launch is paused pending the property's Certificate of Use.",
+    note:"Only organic posting is live currently, every few days on Facebook and Instagram. Canva and Meta ads are the near-term adds; SuperProfile's AutoDM and link-in-bio are deliberately held back and added only if inbound volume demands it. The approach across the whole map is to start small and add each tool when it becomes necessary, rather than stacking them all up front. Ad launch is paused pending the property's Certificate of Use.",
     question:null },
 
   { id:"finance", name:"Finance AI", status:"research", angle:-54,
