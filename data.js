@@ -24,11 +24,12 @@ window.NLG_DATA = {
 },
   aspects: [
   { id:"marketing", name:"Marketing AI", status:"research", angle:-90,
-    tool:"Meta Business Suite, Canva, Claude Team, SuperProfile (if needed), Google Ads (future)",
-    cost:{ low:13, high:18, label:"Canva Pro $13–18. SuperProfile Premium ($29–35) added only if DM and inquiry volume demands it." },
-    purpose:"Turns property content into a steady, on-brand marketing presence across social posts, DMs, and eventually paid ads, reaching the five target audiences for a listing. Each tool owns a piece: Meta Business Suite runs the organic Facebook and Instagram posting and, later, paid ads; Canva produces the visuals; and the Claude Team project holds the brand voice, property details, and five-audience framework that ties it all together. SuperProfile is held in reserve for automated DMs and a link-in-bio, to add only if inbound DMs and inquiries outgrow handling them by hand.",
+    tool:"Meta Business Suite, Meta AI, Canva, Claude Team, SuperProfile (if needed), Google Ads (future)",
+    cost:{ low:13, high:18, label:"Canva Pro $13–18. Meta ads run on their own ad budget (not counted here); Meta AI is free. SuperProfile Premium ($29–35) added only if DM and inquiry volume demands it." },
+    purpose:"Turns property content into a steady, on-brand marketing presence across social posts, DMs, and paid ads, reaching the five target audiences for a listing. Each tool owns a piece: Meta Business Suite runs the organic Facebook and Instagram posting and the now-live paid ad campaign through Ads Manager, with Meta's own free AI assisting on ad copy and creative; Canva produces the visuals; and the Claude Team project holds the brand voice, property details, and five-audience framework that ties it all together. SuperProfile is held in reserve for automated DMs and a link-in-bio, to add only if inbound DMs and inquiries outgrow handling them by hand.",
     options:[
-      "Meta Business Suite (in use): the free control panel for the Facebook Page and Instagram Business profile. Runs organic posting today and paid ads later through Meta Ads Manager. The confirmed backbone of this spoke, not just a candidate.",
+      "Meta Business Suite (in use): the free control panel for the Facebook Page and Instagram Business profile. Runs organic posting and the now-live paid ad campaign through Meta Ads Manager. The confirmed backbone of this spoke, not just a candidate.",
+      "Meta AI (free, inside Ads Manager, in use): Meta's built-in AI for ad creation, generating copy variations, image backgrounds, and audience suggestions right in Business Suite. Free with the ad account, so it serves as a first-pass assist alongside Claude's own drafting.",
       "Canva Pro (one seat): listing flyers, social graphics, and branded templates. Recommended and being set up. This is the anchor Canva subscription, and Brokerage, Client Experience, and capital-raising materials all draw from this same seat, no separate cost.",
       "Claude Team: the brain of the spoke. Drafts every post, caption, and DM, keeps the five-audience framework and brand voice current, and routes anything outbound for approval before it publishes.",
       "SuperProfile Premium (held in reserve, only if needed): automated Instagram DMs (AutoDM) and a link-in-bio page, so first-touch replies and lead routing happen without anyone watching the inbox. Added only if DM and inquiry volume grows past what the team can handle by hand, in keeping with the start-small approach.",
@@ -48,8 +49,8 @@ window.NLG_DATA = {
       {text:"Convert the Facebook Page from personal to Professional/Business account", state:"done"},
       {text:"Link the Page to Meta Business Suite", state:"done"},
       {text:"Switch Instagram to a Business profile, connect it to the same Page", state:"done"},
-      {text:"Create Meta Ads Manager under the same Business Suite account", state:"now"},
-      {text:"Ad account level user access granted, payment method added", state:"now"},
+      {text:"Create Meta Ads Manager under the same Business Suite account", state:"done"},
+      {text:"Ad account level user access granted, payment method added", state:"done"},
       {text:"Only if DMs and inquiries outgrow handling them by hand: create a SuperProfile account, go to AutoDM, connect the Instagram Business account", state:"later"},
       {text:"In AutoDM, choose Create Automation, pick a trigger such as an incoming DM or a post/reel comment, write the message, add a button or link if needed, then Confirm and Launch", state:"later"},
       {text:"Set up the SuperProfile link-in-bio page and add the link to the Instagram bio", state:"later"},
@@ -58,9 +59,11 @@ window.NLG_DATA = {
       {text:"Build the property brand kit in Canva: logo, fonts, colors, and a few reusable post and poster templates", state:"now"},
       {text:"In Claude, open Settings, Connectors, find Canva and connect the Canva account when prompted", state:"later"},
       {text:"Test the loop end to end: Claude drafts a post, generates the Canva graphic on brand, broker approves, then it publishes", state:"later"},
-      {text:"Once organic posting and Meta ads are proven, evaluate Google Ads as an added paid channel, with other ad formats considered after that", state:"later"}
+      {text:"Once organic posting and Meta ads are proven, evaluate Google Ads as an added paid channel, with other ad formats considered after that", state:"later"},
+      {text:"Meta ad campaign launched and running on Facebook and Instagram, managed through Ads Manager in Business Suite", state:"done"},
+      {text:"Meta AI used inside Ads Manager as a free first-pass assist for ad copy and creative", state:"done"}
     ],
-    note:"Only organic posting is live currently, every few days on Facebook and Instagram. Canva and Meta ads are the near-term adds; SuperProfile's AutoDM and link-in-bio are deliberately held back and added only if inbound volume demands it. The approach across the whole map is to start small and add each tool when it becomes necessary, rather than stacking them all up front. Ad launch is paused pending the property's Certificate of Use.",
+    note:"Organic posting and a paid Meta ad campaign are now live on Facebook and Instagram, the ads managed in Ads Manager with help from Meta's free built-in AI. Canva is the next near-term add; SuperProfile's AutoDM and link-in-bio stay held back until inbound volume demands it. The approach across the whole map is to start small and add each tool when it becomes necessary, rather than stacking them all up front.",
     question:null },
 
   { id:"finance", name:"Finance AI", status:"research", angle:-54,
